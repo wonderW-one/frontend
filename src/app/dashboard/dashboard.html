@@ -1,0 +1,197 @@
+@if (client()) {
+    <div class="dashboard-container">
+        
+      <aside class="profile-card">
+        <div class="card-header">
+          <div class="icon-wrapper bg-indigo-light text-indigo">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-md">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="section-title">Mon Profil</h2>
+            <p class="section-subtitle">Vos informations personnelles</p>
+          </div>
+        </div>
+        
+        <div class="profile-details">
+          <div class="detail-item">
+            <span class="detail-label">Adresse email</span> 
+            <span class="detail-value text-break">{{ client()?.user_details?.email ?? '-----' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Téléphone</span> 
+            <span class="detail-value">{{ client()?.telephone ?? '-----' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Adresse postale</span> 
+            <span class="detail-value">{{ client()?.addresse || 'Non renseignée' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Date de naissance</span> 
+            <span class="detail-value">{{ client()?.date_naissance ? (client().date_naissance | date:'dd MMMM yyyy') : 'Non renseignée' }}</span>
+          </div>
+        </div>
+      </aside>
+    
+      <main class="main-content">
+          
+        <section class="content-section">
+          <div class="section-header-inline">
+            <div class="icon-wrapper bg-slate-light text-slate">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-md">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 16.5h1.5M13.5 16.5H15m-7.5 4.5h9" />
+              </svg>
+            </div>
+            <h2 class="section-title-lg">Espaces disponibles à la réservation</h2>
+          </div>
+        
+          @if (bureauxDisponibles().length > 0) {
+            <div class="bureau-list-container">
+              @for (bureau of bureauxDisponibles(); track bureau.id) {
+                <div class="bureau-list-item shadow-box" [class.is-expanded]="bureauSelectionneId === bureau.id">
+                  
+                  <div class="bureau-item-summary" (click)="toggleDetails(bureau.id)">
+                    <div class="bureau-item-info">
+                      <div class="title-block">
+                        <h3 class="bureau-name-link">{{ bureau?.nom }}</h3>
+                        <span class="badge-type">{{ bureau?.typebureau?.nom || 'Standard' }}</span>
+                      </div>
+                      <p class="bureau-mini-specs">
+                        Étage : <span class="text-dark">{{ bureau?.niveau?.nom || 'N/A' }}</span> • 
+                        Superficie : <span class="text-dark">{{ bureau?.espace }} {{ bureau?.unite || 'm²' }}</span>
+                      </p>
+                    </div>
+                    
+                    <div class="bureau-item-actions">
+                      <div class="price-tag">
+                        {{ bureau?.prix | number }} <span class="currency-sm">BIF</span>
+                      </div>
+                      <button class="btn-toggle" [class.rotated]="bureauSelectionneId === bureau.id">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="icon-xs">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  @if (bureauSelectionneId === bureau.id) {
+                    <div class="bureau-item-details">
+                      <form (submit)="onReserver(bureau.id); $event.preventDefault()" class="booking-form-inline">
+                        <div class="form-grid-inline">
+                          <div class="input-group">
+                            <label class="input-label">Date de début</label>
+                            <input type="datetime-local" [(ngModel)]="formReservation[bureau.id].dateDebut" name="date_debut_{{bureau.id}}" required class="custom-input">
+                          </div>
+                          <div class="input-group">
+                            <label class="input-label">Date de fin</label>
+                            <input type="datetime-local" [(ngModel)]="formReservation[bureau.id].dateFin" name="date_fin_{{bureau.id}}" required class="custom-input">
+                          </div>
+                          <div class="button-group-inline">
+                            <button type="submit" class="btn-primary-inline">
+                              Confirmer la réservation
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <p>Aucun espace de bureau disponible actuellement.</p>
+            </div>
+          }
+        </section>
+    
+        <section class="content-section">
+          <div class="section-header-inline">
+            <div class="icon-wrapper bg-slate-light text-slate">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-md">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
+              </svg>
+            </div>
+            <h2 class="section-title-lg">Mes Réservations En Cours</h2>
+          </div>
+          
+          @if (reservations().length > 0) {
+            <div class="reservation-grid">
+              @for (res of reservations(); track $index) {
+                <div class="reservation-card">
+                  <div class="accent-bar"></div>
+                  <span class="res-bureau-name">{{ res?.bureau?.nom || 'Bureau Privé' }}</span>
+                  <span class="badge-type-sm">{{ res?.bureau?.typebureau?.nom || 'N/A' }}</span>
+                  <div class="res-dates">
+                    <div class="date-row">
+                      <span class="date-label">Du:</span>
+                      <span class="date-value">{{ res?.date_debut | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="date-row">
+                      <span class="date-label">Au:</span>
+                      <span class="date-value">{{ res?.date_fin | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-state-left">
+              <p>Aucune réservation enregistrée.</p>
+            </div>
+          }
+        </section>
+    
+        <section class="content-section">
+          <div class="section-header-inline">
+            <div class="icon-wrapper bg-slate-light text-slate">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-md">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+              </svg>
+            </div>
+            <h2 class="section-title-lg">Suivi de mes Paiements</h2>
+          </div>
+    
+          @if (paiements().length > 0) {
+            <div class="payment-list">
+              @for (paiement of paiements(); track $index) {
+                <div class="payment-row">
+                  <div class="payment-left-block">
+                    <div class="payment-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.854-1.107-2.33 0-3.187.552-.427 1.278-.647 2.003-.647.724 0 1.449.22 2.003.647m-4.674 11.391L12 18.75m0-13.5L12.562 6M12 4.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="payment-subject">{{ paiement?.bureau?.nom || 'Frais de dossier' }}</p>
+                      <p class="payment-meta">{{ paiement?.created_at | date:'dd MMM yyyy' }} • Via {{ paiement?.methode_display || 'Système' }}</p>
+                    </div>
+                  </div>
+                  <div class="payment-right-block">
+                    <p class="payment-amount">{{ paiement?.montant | number }} BIF</p>
+                    <span class="badge-status"
+                          [class.status-paid]="paiement?.status === 'PAID'"
+                          [class.status-pending]="paiement?.status === 'PENDING'"
+                          [class.status-failed]="paiement?.status === 'FAILED'">
+                      {{ paiement?.status_display || paiement?.status }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-state-left">
+              <p>Aucune transaction enregistrée.</p>
+            </div>
+          }
+        </section>
+    
+      </main>
+    </div>
+  } @else {
+    <div class="loading-wrapper">
+      <div class="spinner"></div>
+      <p>Connexion à l'API de gestion en cours...</p>
+    </div>
+  }
