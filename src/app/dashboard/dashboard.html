@@ -17,7 +17,7 @@
       <div class="profile-details">
         <div class="detail-item">
           <span class="detail-label">Adresse email</span> 
-          <span class="detail-value text-break">{{ client()?.user_details?.email ?? '-----' }}</span>
+          <span class="detail-value text-break">{{ client()?.user_detail?.email ?? '-----' }}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">Téléphone</span> 
@@ -30,6 +30,15 @@
         <div class="detail-item">
           <span class="detail-label">Date de naissance</span> 
           <span class="detail-value">{{ client()?.date_naissance ? (client().date_naissance | date:'dd MMMM yyyy') : 'Non renseignée' }}</span>
+        </div>
+
+        <div class="logout-wrapper" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #f3f4f6;">
+          <button class="btn-logout" (click)="onLogout()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #ef4444; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 18px; height: 18px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+            </svg>
+            Se déconnecter
+          </button>
         </div>
       </div>
     </aside>
@@ -54,16 +63,17 @@
                 <div class="bureau-item-summary" (click)="toggleDetails(bureau.id)">
                   <div class="bureau-item-info">
                     <div class="title-block">
-                      <ul>
-                        <li><h3 class="bureau-name-link">{{ bureau?.batiment_detail?.nom }}</h3></li>
-                        <li><h3 class="bureau-name-link">Bureau{{ bureau?.numero }}</h3></li>
-                      </ul>
+                      
+                        <h3 class="bureau-name-link">{{ bureau?.batiment_detail?.nom }}</h3>
+                        <hr>
+                        <h3 class="bureau-name-link">Bureau {{ bureau?.numero }}</h3>
+
                       <span class="badge-type">{{ bureau?.type_detail?.nom || 'Standard' }}</span>
                     </div>
                     <p class="bureau-mini-specs">
                       Étage : <span class="text-dark">{{ bureau?.niveau_detail?.nom || 'N/A' }}</span> • 
                       Superficie : <span class="text-dark">{{ bureau?.espace }}m²</span> •
-                      Prix unitaire : <span class="text-dark">{{ bureau?.unite }}Fbu</span>
+                      Prix unitaire : <span class="text-dark">{{ bureau?.unite }} Fbu</span>
                     </p>
                   </div>
                   
@@ -131,26 +141,58 @@
           <h2 class="section-title-lg">Mes Réservations En Cours</h2>
         </div>
         
-        @if (reservations().length > 0) {
+        @if (reservations() && reservations().length > 0) {
           <div class="reservation-grid">
-            @for (res of reservations(); track $index) {
-              <div class="reservation-card">
+            @for (res of reservations(); track res.id) {
+              <div class="reservation-card" [class.active]="selectedReservation()?.id === res.id">
                 <div class="accent-bar"></div>
-                <span class="res-bureau-name">{{ res?.bureau?.numero || 'Bureau Privé' }}</span>
-                <span class="badge-type-sm">{{ res?.bureau?.typebureau?.nom || 'N/A' }}</span>
+                
+                <span class="res-bureau-name">Réservation #{{ $index + 1 }}</span>
+                
+                <span class="badge-type-sm">Bureau {{ res?.bureau_name || 'Bureau ' + res?.bureau }}</span>
+                
                 <div class="res-dates">
                   <div class="date-row">
                     <span class="date-label">Du:</span>
-                    <span class="date-value">{{ res?.date_debut | date:'dd/MM/yyyy HH:mm' }}</span>
+                    <span class="date-value">{{ res?.date_debut | date:'dd/MM/yyyy' }}</span>
                   </div>
                   <div class="date-row">
                     <span class="date-label">Au:</span>
-                    <span class="date-value">{{ res?.date_fin | date:'dd/MM/yyyy HH:mm' }}</span>
+                    <span class="date-value">{{ res?.date_fin | date:'dd/MM/yyyy' }}</span>
                   </div>
+                </div>
+        
+                <div class="card-actions" style="margin-top: 12px; text-align: right;">
+                  <button class="btn-detail-sm" (click)="toggleReservationDetails(res, $index + 1)">
+                    {{ selectedReservation()?.id === res.id ? 'Masquer' : 'Voir détails' }}
+                  </button>
                 </div>
               </div>
             }
           </div>
+        
+          @if (selectedReservation(); as selected) {
+            <div class="detail-panel">
+              <div class="detail-header">
+                <h3>Détails complets de la réservation #{{ selected.indexAffichage }}</h3>
+                <button class="close-btn" (click)="selectedReservation.set(null)">&times;</button>
+              </div>
+              <div class="detail-body">
+                <p><strong>Montant Calculé :</strong> {{ selected.montant_calcule }} FBU</p>
+                <p><strong>Statut :</strong> {{ selected.is_active ? 'Actif' : 'Inactif' }}</p>
+                <p><strong>Date de Création :</strong> {{ selected.created_at | date:'dd/MM/yyyy à HH:mm' }}</p>
+                
+                <hr>
+                
+                <h4>Informations Client</h4>
+                <p><strong>Nom Complet :</strong> {{ selected.client_detail?.user?.first_name }} {{ selected.client_detail?.user?.last_name }}</p>
+                <p><strong>Email :</strong> {{ selected.client_detail?.user?.email }}</p>
+                <p><strong>Téléphone :</strong> {{ selected.client_detail?.telephone }}</p>
+                <p><strong>Adresse :</strong> {{ selected.client_detail?.addresse }}</p>
+              </div>
+            </div>
+          }
+        
         } @else {
           <div class="empty-state-left">
             <p>Aucune réservation enregistrée.</p>
@@ -179,17 +221,17 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="payment-subject">{{ paiement?.bureau?.numero || 'Frais de dossier' }}</p>
-                    <p class="payment-meta">{{ paiement?.created_at | date:'dd MMM yyyy' }} • Via {{ paiement?.methode_display || 'Système' }}</p>
+                    <p class="payment-subject">Paiement Bureau #{{ paiement?.bureau }}</p>
+                    <p class="payment-meta">{{ paiement?.date_paiement | date:'dd MMM yyyy' }} • Via {{ paiement?.mode_paiement || 'Système' }}</p>
                   </div>
                 </div>
                 <div class="payment-right-block">
                   <p class="payment-amount">{{ paiement?.montant | number }} BIF</p>
                   <span class="badge-status"
-                        [class.status-paid]="paiement?.status === 'PAID'"
-                        [class.status-pending]="paiement?.status === 'PENDING'"
-                        [class.status-failed]="paiement?.status === 'FAILED'">
-                    {{ paiement?.status_display || paiement?.status }}
+                        [class.status-paid]="paiement?.statut_paiement === 'PAYE' || paiement?.statut_paiement === 'PAID'"
+                        [class.status-pending]="paiement?.statut_paiement === 'EN_ATTENTE' || paiement?.statut_paiement === 'PENDING'"
+                        [class.status-failed]="paiement?.statut_paiement === 'ECHOUE' || paiement?.statut_paiement === 'FAILED'">
+                    {{ paiement?.statut_paiement }}
                   </span>
                 </div>
               </div>

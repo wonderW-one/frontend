@@ -7,6 +7,10 @@ describe('ApiService', () => {
   let service: ApiService;
   let httpMock: HttpTestingController;
 
+  // Un faux jeton JWT valide (contient l'objet encodé : {"user_id": 42, "exp": 1718556800})
+  // Indispensable pour que jwt-decode ne crash pas pendant le test
+  const mockJwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0MiwiZXhwIjoxNzE4NTU2ODAwfQ.signature_fake';
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
@@ -50,9 +54,28 @@ describe('ApiService', () => {
     req.flush(mockTokens);
   });
 
+  // --- NOUVEAU : TEST DU DÉCODAGE JWT ET PROFIL CONNECTÉ ---
+  it('should decode token, extract user_id, and fetch current user profile', () => {
+    // 1. On stocke notre faux jeton structuré en Base64
+    localStorage.setItem('access_token', mockJwt);
+    const mockProfile = { id: 42, role: 'CLIENT', telephone: '2376...' };
+
+    // 2. On appelle getMonProfil() qui doit en interne extraire l'ID 42
+    service.getMonProfil().subscribe(profile => {
+      expect(profile).toEqual(mockProfile);
+    });
+
+    // 3. On vérifie qu'Angular a bien converti cela en un appel vers /clients/42/
+    const req = httpMock.expectOne('http://127.0.0.1:8000/api/clients/42/');
+    expect(req.request.method).toBe('GET');
+    expect(req.request.headers.get('Authorization')).toBe(`Bearer ${mockJwt}`);
+
+    req.flush(mockProfile);
+  });
+
   // --- TEST DE LA SÉCURITÉ DES EN-TÊTES (JWT BEARER) ---
   it('should include JWT Token in Authorization Header if present', () => {
-    localStorage.setItem('access_token', 'my-secret-jwt');
+    localStorage.setItem('access_token', mockJwt);
     const mockProfile = { id: 42, role: 'CLIENT', telephone: '2376...' };
 
     service.getProfile(42).subscribe(profile => {
@@ -63,7 +86,7 @@ describe('ApiService', () => {
     expect(req.request.method).toBe('GET');
     
     // Validation stricte du format exigé par Django SimpleJWT
-    expect(req.request.headers.get('Authorization')).toBe('Bearer my-secret-jwt');
+    expect(req.request.headers.get('Authorization')).toBe(`Bearer ${mockJwt}`);
 
     req.flush(mockProfile);
   });

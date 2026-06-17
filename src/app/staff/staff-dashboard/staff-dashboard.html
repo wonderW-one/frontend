@@ -1,0 +1,26 @@
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><h3>Espace Staff</h3></div>
+    <p style="color: #bfdbfe; font-size: 13px;">Fiches d'occupation des espaces</p>
+    <div class="sidebar-footer">
+      <button (click)="deconnexion()" class="btn-logout">🚪 Déconnexion</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <section class="admin-section">
+      <h2>Statut des Espaces (Temps Réel)</h2>
+      <div class="kpi-grid">
+        @for (bureau of bureauxStatut(); track bureau.id) {
+          <div class="kpi-card" style="border-left: 5px solid #10b981;">
+            <span class="kpi-value">Bureau {{ bureau.numero }}</span>
+            <span class="kpi-title">Étage : {{ bureau?.niveau_detail?.nom || 'N/A' }}</span>
+            <span class="badge" style="background-color: #d1fae5; color: #065f46; width: fit-content; padding: 4px 8px; border-radius: 4px; margin-top: 10px;">
+              Prêt / Disponible
+            </span>
+          </div>
+        }
+      </div>
+    </section>
+  </main>
+</div>

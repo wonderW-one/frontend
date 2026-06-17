@@ -1,0 +1,114 @@
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h3>Espace Admin</h3>
+    </div>
+    <nav class="sidebar-menu">
+      <button [class.active]="ongletActif() === 'vue-ensemble'" (click)="changerOnglet('vue-ensemble')">Vue d'ensemble</button>
+      <button [class.active]="ongletActif() === 'bureaux'" (click)="changerOnglet('bureaux')">Gestion des Bureaux</button>
+      <button [class.active]="ongletActif() === 'reservations'" (click)="changerOnglet('reservations')">Réservations globales</button>
+      <button [class.active]="ongletActif() === 'paiements'" (click)="changerOnglet('paiements')">Flux des Paiements</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button (click)="deconnexion()" class="btn-logout">🚪 Déconnexion</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    @if (ongletActif() === 'vue-ensemble') {
+      <section class="admin-section">
+        <h2>Tableau de bord général</h2>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-title">Revenus Totaux Perçus</span>
+            <span class="kpi-value text-success">{{ totalRevenus() | number }} BIF</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Réservations Actives</span>
+            <span class="kpi-value">{{ listeReservations().length }}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Nombre de Bureaux</span>
+            <span class="kpi-value">{{ listeBureaux().length }}</span>
+          </div>
+        </div>
+      </section>
+    }
+
+    @if (ongletActif() === 'bureaux') {
+      <section class="admin-section">
+        <h2>Ajouter un nouvel Espace</h2>
+        <form (submit)="ajouterBureau(); $event.preventDefault()" class="admin-form">
+          <div class="form-row">
+            <input type="text" placeholder="Numéro du bureau" [(ngModel)]="bureauForm().numero" name="numero" required>
+            <input type="number" placeholder="Superficie (m²)" [(ngModel)]="bureauForm().espace" name="espace">
+            <input type="number" placeholder="Prix (BIF)" [(ngModel)]="bureauForm().prix" name="prix" required>
+            <button type="submit" class="btn-submit-bureau">Enregistrer le bureau</button>
+          </div>
+        </form>
+
+        <h2>Parc des Bureaux</h2>
+        <table class="admin-table">
+          <thead>
+            <tr><th>Numéro</th><th>Superficie</th><th>Prix (BIF)</th></tr>
+          </thead>
+          <tbody>
+            @for (bureau of listeBureaux(); track bureau.id) {
+              <tr>
+                <td><strong>Bureau {{ bureau?.numero }}</strong></td>
+                <td>{{ bureau?.espace }} m²</td>
+                <td>{{ bureau?.prix | number }} BIF</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (ongletActif() === 'reservations') {
+      <section class="admin-section">
+        <h2>Historique Central des Réservations</h2>
+        <table class="admin-table">
+          <thead>
+            <tr><th>ID</th><th>Bureau</th><th>Date Début</th><th>Date Fin</th></tr>
+          </thead>
+          <tbody>
+            @for (res of listeReservations(); track res.id) {
+              <tr>
+                <td>#{{ res.id }}</td>
+                <td>Bureau {{ res?.bureau_detail?.numero }}</td>
+                <td>{{ res.date_debut | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ res.date_fin | date:'dd/MM/yyyy HH:mm' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (ongletActif() === 'paiements') {
+      <section class="admin-section">
+        <h2>Journal Général des Transactions</h2>
+        <table class="admin-table">
+          <thead>
+            <tr><th>Réf</th><th>Montant</th><th>Mode</th><th>Statut</th></tr>
+          </thead>
+          <tbody>
+            @for (p of listePaiements(); track p.id) {
+              <tr>
+                <td>#{{ p.id }}</td>
+                <td><strong>{{ p.montant | number }} BIF</strong></td>
+                <td>{{ p.mode_paiement }}</td>
+                <td>
+                  <span class="status-indicator" [class.paid]="p.statut_paiement === 'PAYE' || p.statut_paiement === 'PAID'">
+                    {{ p.statut_paiement }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+  </main>
+</div>

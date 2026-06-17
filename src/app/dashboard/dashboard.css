@@ -557,3 +557,49 @@
       transform: translateY(0);
     }
   }
+
+  /* ==========================================================================
+     BUTON de detaile 
+     ========================================================================== */
+
+  .detail-panel {
+      margin-top: 20px;
+      background: #ffffff;
+      border-left: 4px solid #3b82f6; /* Couleur d'accentuation */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    
+  .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+    
+  .btn-detail-sm {
+      background-color: #f3f4f6;
+      border: 1px solid #d1d5db;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+  .btn-detail-sm:hover {
+      background-color: #e5e7eb;
+    }
+    
+  .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+  .btn-logout:hover {
+      background-color: #dc2626 !important; /* Rouge un peu plus foncé au survol */
+    }

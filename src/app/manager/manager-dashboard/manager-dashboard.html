@@ -1,0 +1,43 @@
+<div class="admin-layout">
+  <aside class="sidebar" style="background-color: #0f172a;">
+    <div class="sidebar-brand"><h3>Espace Manager</h3></div>
+    <div style="padding: 10px; color: #94a3b8;">Suivi des performances</div>
+    <div class="sidebar-footer">
+      <button (click)="deconnexion()" class="btn-logout">🚪 Déconnexion</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <section class="admin-section">
+      <h2>Vue d'ensemble Manager</h2>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-title">Chiffre d'Affaires Global</span>
+          <span class="kpi-value" style="color: #0284c7;">{{ chiffreAffaire() | number }} BIF</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">Demandes de Réservations</span>
+          <span class="kpi-value">{{ listeReservations().length }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-section" style="margin-top: 30px;">
+      <h2>Réservations à Superviser</h2>
+      <table class="admin-table">
+        <thead>
+          <tr><th>ID</th><th>Bureau</th><th>Période</th></tr>
+        </thead>
+        <tbody>
+          @for (res of listeReservations(); track res.id) {
+            <tr>
+              <td>#{{ res.id }}</td>
+              <td>Bureau {{ res?.bureau_detail?.numero || res.bureau }}</td>
+              <td>Du {{ res.date_debut | date:'dd/MM' }} au {{ res.date_fin | date:'dd/MM' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </main>
+</div>

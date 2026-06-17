@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { jwtDecode } from 'jwt-decode'; // Importation de la bibliothèque
 
 @Injectable({
   providedIn: 'root'
@@ -22,16 +23,37 @@ export class ApiService {
   }
 
   /**
-   * RÉCENT : Récupère le profil du client connecté via le Token JWT (évite les erreurs d'ID / 404)
-   * Cible l'action @action(detail=False, url_path='me') de Django
+   * SOLUTION ALTERNATIVE : Décode le token JWT pour trouver l'ID de l'utilisateur
+   * et appelle directement l'endpoint individuel /clients/{id}/
    */
   getMonProfil(): Observable<any> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/clients/me/`, { headers });
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+      return throwError(() => new Error('Aucun token d’accès trouvé'));
+    }
+
+    try {
+      // Décodage du token pour récupérer les infos
+      const decoded: any = jwtDecode(token);
+      
+      // ATTENTION : Vérifie le nom de la clé dans ton token (souvent 'user_id' ou 'sub')
+      const userId = decoded.user_id || decoded.sub; 
+
+      if (!userId) {
+        return throwError(() => new Error('ID utilisateur introuvable dans le token'));
+      }
+
+      // On réutilise ton endpoint existant /api/clients/{id}/
+      return this.getProfile(userId);
+
+    } catch (error) {
+      return throwError(() => new Error('Erreur lors du décodage du token JWT'));
+    }
   }
 
   /**
-   * Récupère le profil d'un client spécifique par son ID (Utile pour Admin / Staff)
+   * Récupère le profil d'un client spécifique par son ID (Utilisé par Admin / Staff ET maintenant par le client lui-même)
    */
   getProfile(userId: number): Observable<any> {
     const headers = this.getAuthHeaders();
@@ -40,7 +62,6 @@ export class ApiService {
 
   getBureauxDisponibles(): Observable<any[]> {
     const headers = this.getAuthHeaders();
-    // Cible précisément /api/bureaux/disponibles/
     return this.http.get<any>(`${this.apiUrl}/bureaux/disponibles/`, { headers }).pipe(
       map(response => response.results || response)
     );
@@ -48,22 +69,18 @@ export class ApiService {
   
   getMesReservations(): Observable<any[]> {
     const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/reservations/mes-reservations/`, { headers }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/reservations/`, { headers }).pipe(
       map(response => response.results || response)
     );
   }
 
   getPaiements(): Observable<any[]> {
     const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/paiements/mes-paiements/`, { headers }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/paiements/`, { headers }).pipe(
       map(response => response.results || response)
     );
   }
 
-  /**
-   * Créer une réservation.
-   * Le client est automatiquement associé par le backend grâce au Token JWT
-   */
   creerReservation(bureauId: number, dateDebut: string, dateFin: string): Observable<any> {
     const headers = this.getAuthHeaders();
     const body = {

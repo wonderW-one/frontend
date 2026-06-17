@@ -1,0 +1,73 @@
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f1f5f9;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+.sidebar {
+  width: 260px;
+  background-color: #1e293b;
+  color: #ffffff;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.sidebar-brand h3 {
+  margin: 0 0 32px 0;
+  font-size: 20px;
+  color: #38bdf8;
+}
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sidebar-menu button {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.sidebar-menu button:hover, .sidebar-menu button.active {
+  background-color: #334155;
+  color: #ffffff;
+}
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #334155;
+}
+.btn-logout {
+  width: 100%;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-logout:hover { 
+  background-color: #dc2626; 
+}
+.admin-main { flex: 1; padding: 40px; overflow-y: auto; }
+.admin-section h2 { color: #0f172a; margin-bottom: 24px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+.kpi-card { background: #ffffff; padding: 24px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.kpi-title { color: #64748b; font-size: 14px; }
+.kpi-value { font-size: 24px; font-weight: 700; color: #0f172a; }
+.text-success { color: #16a34a; }
+.admin-table { width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 12px; overflow: hidden; }
+.admin-table th, .admin-table td { padding: 16px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+.admin-table th { background-color: #f8fafc; color: #475569; }
+.status-indicator.paid { color: #16a34a; font-weight: bold; }
+.admin-form { background: #ffffff; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+.form-row { display: flex; gap: 15px; flex-wrap: wrap; }
+.admin-form input { flex: 1; min-width: 150px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
+.btn-submit-bureau { background-color: #4f46e5; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
