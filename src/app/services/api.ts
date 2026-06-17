@@ -10,72 +10,65 @@ export class ApiService {
   private apiUrl = 'http://127.0.0.1:8000/api';
   private http = inject(HttpClient);
 
-  /** * Récupérer les en-têtes contenant le jeton JWT.
-   * Cette méthode privée évite de répéter le code de sécurité dans chaque fonction.
-   */
   private getAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem('access_token');
-    if (token) {
-      // SimpleJWT de Django requiert impérativement le préfixe "Bearer "
-      return new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    }
-    return new HttpHeaders();
+    return token 
+      ? new HttpHeaders({ 'Authorization': `Bearer ${token}` }) 
+      : new HttpHeaders();
   }
 
-  /** * Authentifier l'utilisateur et récupérer la paire de jetons (Access & Refresh)
-   * Cible la route : path('api/token/', TokenObtainPairView.as_view())
-   */
   login(username: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/token/`, { username, password });
   }
 
   /**
-   * Rafraîchir un jeton d'accès expiré à l'aide du jeton de rafraîchissement
-   * Cible la route : path('api/token/refresh/', TokenRefreshView.as_view())
+   * RÉCENT : Récupère le profil du client connecté via le Token JWT (évite les erreurs d'ID / 404)
+   * Cible l'action @action(detail=False, url_path='me') de Django
    */
-  refreshToken(refresh: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/token/refresh/`, { refresh });
-  }
-
-  /** Récupérer le profil du client connecté */
-  getProfile(clientId: number = 1): Observable<any> {
+  getMonProfil(): Observable<any> {
     const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/clients/${clientId}/`, { headers });
+    return this.http.get<any>(`${this.apiUrl}/clients/me/`, { headers });
   }
 
-  /** Récupérer la liste des bureaux */
+  /**
+   * Récupère le profil d'un client spécifique par son ID (Utile pour Admin / Staff)
+   */
+  getProfile(userId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${this.apiUrl}/clients/${userId}/`, { headers });
+  }
+
   getBureauxDisponibles(): Observable<any[]> {
     const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/bureaux/`, { headers }).pipe(
+    // Cible précisément /api/bureaux/disponibles/
+    return this.http.get<any>(`${this.apiUrl}/bureaux/disponibles/`, { headers }).pipe(
       map(response => response.results || response)
     );
   }
-
-  /** Récupérer les réservations en cours */
+  
   getMesReservations(): Observable<any[]> {
     const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/reservations/`, { headers }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/reservations/mes-reservations/`, { headers }).pipe(
       map(response => response.results || response)
     );
   }
 
-  /** Récupérer le suivi des paiements */
   getPaiements(): Observable<any[]> {
     const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/paiements/`, { headers }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/paiements/mes-paiements/`, { headers }).pipe(
       map(response => response.results || response)
     );
   }
 
-  /** Créer une réservation */
-  creerReservation(bureauId: number, clientId: number, dateDebut: string, dateFin: string): Observable<any> {
+  /**
+   * Créer une réservation.
+   * Le client est automatiquement associé par le backend grâce au Token JWT
+   */
+  creerReservation(bureauId: number, dateDebut: string, dateFin: string): Observable<any> {
     const headers = this.getAuthHeaders();
     const body = {
       bureau: bureauId,
-      client: clientId,
-      date_debut: dateDebut, // Format : YYYY-MM-DD
+      date_debut: dateDebut, 
       date_fin: dateFin
     };
     return this.http.post<any>(`${this.apiUrl}/reservations/`, body, { headers });
