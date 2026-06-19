@@ -72,9 +72,8 @@
                 <div class="bureau-item-summary" (click)="toggleDetails(bureau.id)">
                   <div class="bureau-item-info">
                     <div class="title-block">
-                        <h3 class="bureau-name-link">{{ bureau?.batiment_detail?.nom }}</h3>
-                        <br>
-                        <h3 class="bureau-name-link">Bureau {{ bureau?.numero }}</h3>
+                      <h3 class="bureau-name-link" style="margin-bottom: 4px;">{{ bureau?.batiment_detail?.nom }}</h3>
+                      <h3 class="bureau-name-link">Bureau {{ bureau?.numero }}</h3>
                       <span class="badge-type">{{ bureau?.type_detail?.nom || 'Standard' }}</span>
                     </div>
                     <p class="bureau-mini-specs">
@@ -266,8 +265,6 @@
         }
       </section>
 
-
-  
       <section class="content-section">
         <div class="section-header-inline">
           <div class="icon-wrapper bg-indigo-light text-indigo">
@@ -286,9 +283,8 @@
                 <label class="input-label">Contrat ou Location concerné(e)</label>
                 <select [(ngModel)]="formPaiement().contrat" name="contrat" class="custom-input" required>
                   <option value="" disabled selected>Choisir un contrat</option>
-  
                   @for (contrat of contrats(); track contrat.id) {
-                  <option [value]="contrat.id">Contrat N° {{ contrat.id }}</option>
+                    <option [value]="contrat.id">Contrat N° {{ contrat.id }}</option>
                   }
                 </select>
               </div>
@@ -337,7 +333,15 @@
                   </div>
                   <div>
                     <p class="payment-subject">Paiement Bureau #{{ paiement?.bureau }}</p>
+                    
+                    @if (paiement?.mois_paye) {
+                      <p class="payment-period" style="font-size: 0.85rem; color: #4b5563; margin: 2px 0;">
+                        Période : Mois {{ paiement.mois_paye }}
+                      </p>
+                    }
+
                     <p class="payment-meta">{{ paiement?.date_paiement | date:'dd MMM yyyy' }} • Via {{ paiement?.mode_paiement || 'Système' }}</p>
+                    
                     @if (paiement?.validated_by_name) {
                       <p style="font-size: 0.75rem; color: #059669; font-weight: 500;">
                         Validé par : {{ paiement.validated_by_name }} (ID: {{ paiement.validated_by_id }})
@@ -351,7 +355,17 @@
                         [class.status-paid]="paiement?.statut_paiement === 'PAYE' || paiement?.statut_paiement === 'PAID'"
                         [class.status-pending]="paiement?.statut_paiement === 'EN_ATTENTE' || paiement?.statut_paiement === 'PENDING' || paiement?.statut_paiement === 'PENDING_ADMIN'"
                         [class.status-failed]="paiement?.statut_paiement === 'ECHOUE' || paiement?.statut_paiement === 'FAILED'">
-                    {{ paiement?.statut_paiement }}
+                    
+                    @switch (paiement?.statut_paiement) {
+                      @case ('PAYE') { Payé }
+                      @case ('PAID') { Payé }
+                      @case ('EN_ATTENTE') { En attente }
+                      @case ('PENDING') { En attente }
+                      @case ('PENDING_ADMIN') { Vérification Admin }
+                      @case ('ECHOUE') { Échoué }
+                      @case ('FAILED') { Échoué }
+                      @default { {{ paiement?.statut_paiement }} }
+                    }
                   </span>
                 </div>
               </div>

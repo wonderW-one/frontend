@@ -171,7 +171,7 @@ export class ApiService {
   /**
    * AJOUT 3 : Soumettre une demande d'enregistrement de paiement (Statut initial En Attente)
    */
-  soumettreDemandePaiement(donneesPaiement: { contrat: string; mode: string; mois_paye: number }): Observable<any> {
+  /*soumettreDemandePaiement(donneesPaiement: { contrat: string; mode: string; mois_paye: number }): Observable<any> {
     const headers = this.getAuthHeaders();
     const body = {
       contrat: Number(donneesPaiement.contrat),
@@ -180,5 +180,8 @@ export class ApiService {
       annee_paye: new Date().getFullYear() // Envoie automatiquement l'année en cours
     };
     return this.http.post<any>(`${this.apiUrl}/paiements/`, body, { headers });
+  }*/
+  soumettreDemandePaiement(data: { contrat: number | null; mode: string; mois_paye: number }) {
+    return this.http.post(`${this.apiUrl}/paiements/`, data); // Ou votre route correspondante
   }
 }

@@ -1,13 +1,13 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms'; // AJOUT : Requis pour utiliser ngModel dans le formulaire de paiement
+import { FormsModule } from '@angular/forms'; 
 import { ApiService } from '../services/api';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule], // AJOUT : Intégration de FormsModule ici
+  imports: [CommonModule, FormsModule], 
   templateUrl: './dashboard.html', 
   styleUrls: ['./dashboard.css']
 })
@@ -28,9 +28,9 @@ export class DashboardComponent implements OnInit {
   // Gestion des formulaires via un Signal dictionnaire réactif
   formReservation = signal<{ [key: number]: { dateDebut: string; dateFin: string } }>({});
 
-  // AJOUT : Structure réactive pour le formulaire de déclaration de paiement
+  // 🔴 CORRECTION : Initialisation typée pour correspondre aux attentes du Backend (ID numérique ou null)
   formPaiement = signal({
-    contrat: '',
+    contrat: null as number | null,
     mode: 'CASH',
     mois_paye: new Date().getMonth() + 1
   });
@@ -160,7 +160,6 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  // AJOUT 1 : Louer instantanément sans réservation préalable
   onLouerDirectement(bureauId: number): void {
     const dates = this.formReservation()[bureauId];
     if (!dates || !dates.dateDebut || !dates.dateFin) {
@@ -172,7 +171,6 @@ export class DashboardComponent implements OnInit {
     const dateFinNettoyee = this.formaterDatePourDjango(dates.dateFin);
   
     if (confirm('Confirmez-vous la création d\'un contrat immédiat pour ce bureau ?')) {
-      // Appel du service modifié pour les contrats
       this.apiService.creerContratDirect(bureauId, dateDebutNettoyee, dateFinNettoyee).subscribe({
         next: (reponse: any) => {
           alert('Contrat immédiat enregistré en base de données avec succès !');
@@ -184,10 +182,8 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  // AJOUT 2 : Convertir une réservation existante en contrat de location actif
   onLouerDepuisReservation(reservation: any): void {
     if (confirm(`Voulez-vous transformer la réservation #${reservation.id} en contrat actif maintenant ?`)) {
-      // Appel de la nouvelle méthode du service API pour les contrats
       this.apiService.convertirReservationEnContrat(reservation.id).subscribe({
         next: () => {
           alert('La réservation a été validée et enregistrée en tant que contrat actif !');
@@ -199,28 +195,30 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  // AJOUT 3 : Déclarer un paiement (POST) destiné à être validé par le Staff/Admin
+  // 🔴 CORRECTION : Validation et réinitialisation propre du formulaire
   onSoumettrePaiement(): void {
     const dataPaiement = this.formPaiement();
     if (!dataPaiement.contrat) {
-      alert('Veuillez saisir un numéro de contrat valide.');
+      alert('Veuillez sélectionner un contrat valide.');
       return;
     }
 
     this.apiService.soumettreDemandePaiement(dataPaiement).subscribe({
       next: () => {
         alert('Demande d\'encaissement envoyée ! Elle apparaîtra comme "En attente" jusqu\'à ce qu\'un administrateur ou un travailleur la valide.');
-        // Réinitialisation du champ contrat
-        this.formPaiement.update(f => ({ ...f, contrat: '' }));
+        
+        // Réinitialisation complète propre
+        this.formPaiement.set({
+          contrat: null,
+          mode: 'CASH',
+          mois_paye: new Date().getMonth() + 1
+        });
         this.chargerDonneesTableauDeBord();
       },
       error: (err: any) => this.gererErreurBackend(err)
     });
   }
 
-  /**
-   * Centralisation du traitement des erreurs HTTP du backend Django Rest Framework
-   */
   private gererErreurBackend(err: any): void {
     console.error("Détails de l'erreur backend :", err);
     if (err.error && typeof err.error === 'object') {
