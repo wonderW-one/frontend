@@ -12,22 +12,23 @@
   
   /* --- Conteneur Principal (Centrage Absolu) --- */
   .login-container {
+
+    background:#ffffff;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: var(--bg-gradient);
     padding: 20px;
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
   
   /* --- Carte du Formulaire --- */
   .login-container form {
-    background: #ffffff;
+    background: beige;
     padding: 40px;
     border-radius: 16px;
-    box-shadow: 0 10px 25px 5px rgba(0, 0, 0, 0.05), 
+    box-shadow: 0 5px 5px 5px rgba(0, 0, 0, 0.05), 
                 0 8px 10px 6px rgba(0, 0, 0, 0.05);
     width: 100%;
     max-width: 420px;
@@ -70,7 +71,7 @@
     background-color: #f8fafc;
     outline: none;
     transition: all 0.2s ease-in-out;
-    box-shadow: 0 0 0 6px rgba(79, 70, 229, 0.1);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
   }
   
   .form-control:focus {
@@ -131,4 +132,24 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+
+  .login-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #4b5563;
+  }
+  
+  .login-footer a {
+    color: #4f46e5;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  
+  .login-footer a:hover {
+    text-decoration: underline;
+    color: #4338ca;
   }

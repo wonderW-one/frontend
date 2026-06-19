@@ -47,9 +47,11 @@
             
             
             <select [(ngModel)]="bureauForm().batiment" name="batiment" required class="form-select">
-              <option value="" disabled selected>Bâtiment</option>
-              <option value="1">Bâtiment A</option>
-              <option value="2">Bâtiment B</option>
+              <option value="" disabled selected>Choisir un bâtiment</option>
+  
+              @for (batiment of batiments(); track batiment.id) {
+                <option [value]="batiment.id">{{ batiment.nom }}</option>
+              }
             </select>
 
             <select [(ngModel)]="bureauForm().type" name="type_bureau" required class="form-select">
@@ -122,6 +124,15 @@
                   <span class="status-indicator" [class.paid]="p.statut_paiement === 'PAYE' || p.statut_paiement === 'PAID'">
                     {{ p.statut }}
                   </span>
+                </td>
+                <td>
+                  @if (p.statut !== 'PAID' && p.statut !== 'FAILED') {
+                    <button (click)="validerLePaiement(p.id)" class="btn-validate">
+                      ✅ Valider
+                    </button>
+                  } @else {
+                    <span class="text-muted">Aucune action</span>
+                  }
                 </td>
               </tr>
             }

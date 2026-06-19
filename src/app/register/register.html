@@ -1,0 +1,70 @@
+<div class="register-wrapper">
+    <div class="register-box shadow-box">
+      <div class="register-header">
+        <h2>Créer un compte Client</h2>
+        <p>Inscrivez-vous pour louer et réserver vos espaces de bureau</p>
+      </div>
+  
+      <form (submit)="onInscription(); $event.preventDefault()" class="register-form">
+        
+        <div class="form-grid">
+          <div class="input-group">
+            <label class="input-label">Prénom <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="formInscription().first_name" name="first_name" required class="custom-input" placeholder="Ex: John">
+          </div>
+  
+          <div class="input-group">
+            <label class="input-label">Nom <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="formInscription().last_name" name="last_name" required class="custom-input" placeholder="Ex: Doe">
+          </div>
+        </div>
+  
+        <div class="form-grid">
+          <div class="input-group">
+            <label class="input-label">Nom d'utilisateur <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="formInscription().username" name="username" required class="custom-input" placeholder="Ex: jdoe99">
+          </div>
+  
+          <div class="input-group">
+            <label class="input-label">Adresse Email <span class="required">*</span></label>
+            <input type="email" [(ngModel)]="formInscription().email" name="email" required class="custom-input" placeholder="Ex: john.doe@example.com">
+          </div>
+        </div>
+  
+        <div class="input-group">
+          <label class="input-label">Mot de passe <span class="required">*</span></label>
+          <input type="password" [(ngModel)]="formInscription().password" name="password" required class="custom-input" placeholder="••••••••">
+        </div>
+  
+        <div class="form-grid">
+          <div class="input-group">
+            <label class="input-label">Téléphone (Cameroun)</label>
+            <input type="tel" [(ngModel)]="formInscription().telephone" name="telephone" class="custom-input" placeholder="Ex: 699999999">
+          </div>
+  
+          <div class="input-group">
+            <label class="input-label">Date de naissance</label>
+            <input type="date" [(ngModel)]="formInscription().date_naissance" name="date_naissance" class="custom-input">
+          </div>
+        </div>
+  
+        <div class="input-group">
+          <label class="input-label">Adresse de résidence</label>
+          <input type="text" [(ngModel)]="formInscription().addresse" name="addresse" class="custom-input" placeholder="Ex: Rue de l'Indépendance, Douala">
+        </div>
+  
+        <button type="submit" class="btn-register" [disabled]="chargementEnCours()">
+          @if (chargementEnCours()) {
+            <span>Création du compte en cours...</span>
+          } @else {
+            <span>S'inscrire maintenant</span>
+          }
+        </button>
+  
+        <div class="register-footer">
+          <p>Vous avez déjà un compte ? <a routerLink="/login">Connectez-vous ici</a></p>
+        </div>
+  
+      </form>
+    </div>
+  </div>

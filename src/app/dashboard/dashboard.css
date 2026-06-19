@@ -2,7 +2,7 @@
    1. LAYOUT GLOBAL (GRID PRINCIPAL)
    ========================================================================== */
    .dashboard-container {
-    background: bisque;
+    
     display: grid;
     grid-template-columns: 1fr;
     gap: 1.5rem;
@@ -10,7 +10,7 @@
     max-width: 1400px;
     margin: 0 auto;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: rgb(87, 87, 238); /* slate-50 */
+    background-color: rgb(234, 234, 241); /* slate-50 */
   }
   
   /* Passage en deux colonnes sur écran d'ordinateur */

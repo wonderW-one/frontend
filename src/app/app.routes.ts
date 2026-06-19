@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login';
+import { RegisterComponent } from './register/register'; // 🟢 AJOUT : Import du composant d'inscription
 import { DashboardComponent } from './dashboard/dashboard'; // Client
 import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard';
 import { ManagerDashboardComponent } from './manager/manager-dashboard/manager-dashboard';
@@ -9,6 +10,7 @@ import { authGuard } from './auth-guard';
 export const routes: Routes = [
   // La route login ne doit JAMAIS avoir de canActivate: [authGuard]
   { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent }, // 🟢 AJOUT : Route d'inscription publique
   
   // Configuration des rôles attendus par le guard
   { 

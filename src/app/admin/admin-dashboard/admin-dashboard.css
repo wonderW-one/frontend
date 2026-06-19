@@ -84,3 +84,24 @@
   border-radius: 4px;
   min-width: 150px;
 }
+/* bouton validation */
+.btn-validate {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+
+.btn-validate:hover {
+  background-color: #218838;
+}
+
+.text-muted {
+  color: #6c757d;
+  font-style: italic;
+  font-size: 0.85rem;
+}

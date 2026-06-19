@@ -20,6 +20,8 @@ export class AdminDashboardComponent implements OnInit {
   listeReservations = signal<any[]>([]);
   listePaiements = signal<any[]>([]);
   totalRevenus = signal<number>(0);
+  // 1. Déclare le signal pour stocker la liste
+  batiments = signal<any[]>([]);
 
   bureauForm = signal({
     numero: '',
@@ -33,9 +35,16 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.chargerDonneesAdmin();
+    
   }
 
   chargerDonneesAdmin(): void {
+    // 2. Ajoute ceci à ta fonction de chargement des données
+    this.apiService.getBatiments().subscribe({
+      next: (data: any[]) => this.batiments.set(data),
+      error: (err: any) => console.error('⚠️ Erreur lors du chargement des bâtiments :', err)
+    });
+    
     this.apiService.getBureauxDisponibles().subscribe({
       next: (data) => this.listeBureaux.set(data),
       error: (err) => console.error('Erreur bureaux admin', err)
@@ -60,7 +69,7 @@ export class AdminDashboardComponent implements OnInit {
       error: (err) => console.error('Erreur paiements admin', err)
     });
   }
-
+  
   ajouterBureau(): void {
     console.log('--- tentative d’ajout de bureau ---');
     const donnees = this.bureauForm();
@@ -92,5 +101,37 @@ export class AdminDashboardComponent implements OnInit {
   deconnexion(): void {
     localStorage.removeItem('access_token');
     this.router.navigate(['/login']);
+  }
+
+
+  // fonction qui va déclencher l'appel API et rafraîchir la liste instantanément sans recharger la page  
+  validerLePaiement(paiementId: number): void {
+    if (confirm('Voulez-vous vraiment marquer ce paiement comme PAYÉ ?')) {
+      this.apiService.validerPaiement(paiementId).subscribe({
+        next: (res) => {
+          alert(res.detail || 'Paiement validé avec succès !');
+          
+          // Mise à jour en temps réel de la liste des paiements dans l'interface
+          this.listePaiements.update(paiements => 
+            paiements.map(p => p.id === paiementId ? { ...p, statut: 'PAID' } : p)
+          );
+          
+          // Optionnel : Recalculer les revenus globaux affichés sur le KPI suite à la validation
+          this.recalculerRevenus();
+        },
+        error: (err) => {
+          console.error('Erreur lors de la validation', err);
+          alert(`Erreur : ${err.error?.detail || 'Impossible de valider le paiement.'}`);
+        }
+      });
+    }
+  }
+  
+  // Petite fonction d'aide pour recalculer le KPI automatiquement
+  private recalculerRevenus(): void {
+    const revenus = this.listePaiements()
+      .filter((p: any) => p.statut === 'PAID')
+      .reduce((sum: number, current: any) => sum + Number(current.montant || 0), 0);
+    this.totalRevenus.set(revenus);
   }
 }

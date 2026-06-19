@@ -15,18 +15,27 @@
       </div>
       
       <div class="profile-details">
+
+        <div class="detail-item">
+          <span class="detail-label">Nom</span> 
+          <span class="detail-value text-break">{{ client()?.user_detail?.first_name ?? '-----' }}</span>
+        </div>
+
         <div class="detail-item">
           <span class="detail-label">Adresse email</span> 
           <span class="detail-value text-break">{{ client()?.user_detail?.email ?? '-----' }}</span>
         </div>
+
         <div class="detail-item">
           <span class="detail-label">Téléphone</span> 
           <span class="detail-value">{{ client()?.telephone ?? '-----' }}</span>
         </div>
+
         <div class="detail-item">
           <span class="detail-label">Adresse postale</span> 
           <span class="detail-value">{{ client()?.addresse || 'Non renseignée' }}</span>
         </div>
+
         <div class="detail-item">
           <span class="detail-label">Date de naissance</span> 
           <span class="detail-value">{{ client()?.date_naissance ? (client().date_naissance | date:'dd MMMM yyyy') : 'Non renseignée' }}</span>
@@ -52,7 +61,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 16.5h1.5M13.5 16.5H15m-7.5 4.5h9" />
             </svg>
           </div>
-          <h2 class="section-title-lg">Espaces disponibles à la réservation</h2>
+          <h2 class="section-title-lg">Espaces disponibles à la location et réservation</h2>
         </div>
       
         @if (bureauxDisponibles().length > 0) {
@@ -63,11 +72,9 @@
                 <div class="bureau-item-summary" (click)="toggleDetails(bureau.id)">
                   <div class="bureau-item-info">
                     <div class="title-block">
-                      
                         <h3 class="bureau-name-link">{{ bureau?.batiment_detail?.nom }}</h3>
                         <br>
                         <h3 class="bureau-name-link">Bureau {{ bureau?.numero }}</h3>
-
                       <span class="badge-type">{{ bureau?.type_detail?.nom || 'Standard' }}</span>
                     </div>
                     <p class="bureau-mini-specs">
@@ -91,12 +98,12 @@
                 
                 @if (bureauSelectionneId() === bureau.id) {
                   <div class="bureau-item-details">
-                    <form (submit)="onReserver(bureau.id); $event.preventDefault()" class="booking-form-inline">
+                    <form class="booking-form-inline">
                       <div class="form-grid-inline">
                         
                         <div class="input-group">
                           <label class="input-label">Date de début</label>
-                          <input type="datetime-local" 
+                          <input type="date" 
                                  [value]="formReservation()[bureau.id]?.dateDebut || ''"
                                  (input)="updateDate(bureau.id, 'dateDebut', $any($event.target).value)"
                                  required 
@@ -105,16 +112,19 @@
 
                         <div class="input-group">
                           <label class="input-label">Date de fin</label>
-                          <input type="datetime-local" 
+                          <input type="date" 
                                  [value]="formReservation()[bureau.id]?.dateFin || ''"
                                  (input)="updateDate(bureau.id, 'dateFin', $any($event.target).value)"
                                  required 
                                  class="custom-input">
                         </div>
 
-                        <div class="button-group-inline">
-                          <button type="submit" class="btn-primary-inline">
-                            Confirmer la réservation
+                        <div class="button-group-inline" style="display: flex; gap: 10px;">
+                          <button type="button" (click)="onReserver(bureau.id)" class="btn-primary-inline">
+                            Réserver l'espace
+                          </button>
+                          <button type="button" (click)="onLouerDirectement(bureau.id)" class="btn-success-inline" style="background-color: #10b981; color: white;">
+                            ⚡ Louer maintenant
                           </button>
                         </div>
                       </div>
@@ -162,7 +172,12 @@
                   </div>
                 </div>
         
-                <div class="card-actions" style="margin-top: 12px; text-align: right;">
+                <div class="card-actions" style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                  @if (res.is_active) {
+                    <button class="btn-success-sm" (click)="onLouerDepuisReservation(res)" style="background-color: #10b981; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">
+                      🔑 Louer maintenant
+                    </button>
+                  }
                   <button class="btn-detail-sm" (click)="toggleReservationDetails(res, $index + 1)">
                     {{ selectedReservation()?.id === res.id ? 'Masquer' : 'Voir détails' }}
                   </button>
@@ -189,6 +204,14 @@
                 <p><strong>Email :</strong> {{ selected.client_detail?.user?.email }}</p>
                 <p><strong>Téléphone :</strong> {{ selected.client_detail?.telephone }}</p>
                 <p><strong>Adresse :</strong> {{ selected.client_detail?.addresse }}</p>
+
+                @if (selected.is_active) {
+                  <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd;">
+                    <button class="btn-primary-inline" (click)="onLouerDepuisReservation(selected)" style="width: 100%; background-color: #0284c7;">
+                      Convertir cette réservation en Location Immédiate
+                    </button>
+                  </div>
+                }
               </div>
             </div>
           }
@@ -200,6 +223,53 @@
         }
       </section>
   
+      <section class="content-section">
+        <div class="section-header-inline">
+          <div class="icon-wrapper bg-indigo-light text-indigo">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-md">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.008M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM3.75 12h.008m16.5 0h.008m-1.5 5.25h.008m-13.5-5.25h.008m0 3.515h.008M12 9.75v3.493m0 2.257h.007" />
+            </svg>
+          </div>
+          <h2 class="section-title-lg">Déclarer un Paiement (Soumettre à validation Staff)</h2>
+        </div>
+
+        <div class="shadow-box" style="padding: 20px; background-color: #fafafa; border-radius: 8px;">
+          <form (submit)="onSoumettrePaiement(); $event.preventDefault()">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+              
+              <div class="input-group">
+                <label class="input-label">Contrat ou Location concerné(e)</label>
+                <select [(ngModel)]="formPaiement().contrat" name="contrat" class="custom-input" required>
+                  <option value="" disabled selected>Choisir un contrat</option>
+  
+                  @for (contrat of contrats(); track contrat.id) {
+                  <option [value]="contrat.id">Contrat N° {{ contrat.id }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label class="input-label">Mode de règlement</label>
+                <select [(ngModel)]="formPaiement().mode" name="mode" class="custom-input" style="height: 42px;">
+                  <option value="CASH">Espèces (Cash)</option>
+                  <option value="CARD">Carte Bancaire</option>
+                  <option value="TRANSFER">Virement Bancaire</option>
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label class="input-label">Mois de règlement</label>
+                <input type="number" min="1" max="12" placeholder="Mois (1-12)" [(ngModel)]="formPaiement().mois_paye" name="mois_paye" class="custom-input">
+              </div>
+            </div>
+
+            <button type="submit" class="btn-primary-inline" style="background-color: #4f46e5; width: 100%;">
+              Envoyer la demande d'encaissement (Statut : En attente validation Admin)
+            </button>
+          </form>
+        </div>
+      </section>
+
       <section class="content-section">
         <div class="section-header-inline">
           <div class="icon-wrapper bg-slate-light text-slate">
@@ -223,13 +293,18 @@
                   <div>
                     <p class="payment-subject">Paiement Bureau #{{ paiement?.bureau }}</p>
                     <p class="payment-meta">{{ paiement?.date_paiement | date:'dd MMM yyyy' }} • Via {{ paiement?.mode_paiement || 'Système' }}</p>
+                    @if (paiement?.validated_by_name) {
+                      <p style="font-size: 0.75rem; color: #059669; font-weight: 500;">
+                        Validé par : {{ paiement.validated_by_name }} (ID: {{ paiement.validated_by_id }})
+                      </p>
+                    }
                   </div>
                 </div>
                 <div class="payment-right-block">
                   <p class="payment-amount">{{ paiement?.montant | number }} BIF</p>
                   <span class="badge-status"
                         [class.status-paid]="paiement?.statut_paiement === 'PAYE' || paiement?.statut_paiement === 'PAID'"
-                        [class.status-pending]="paiement?.statut_paiement === 'EN_ATTENTE' || paiement?.statut_paiement === 'PENDING'"
+                        [class.status-pending]="paiement?.statut_paiement === 'EN_ATTENTE' || paiement?.statut_paiement === 'PENDING' || paiement?.statut_paiement === 'PENDING_ADMIN'"
                         [class.status-failed]="paiement?.statut_paiement === 'ECHOUE' || paiement?.statut_paiement === 'FAILED'">
                     {{ paiement?.statut_paiement }}
                   </span>

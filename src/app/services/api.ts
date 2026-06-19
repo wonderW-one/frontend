@@ -21,6 +21,11 @@ export class ApiService {
   login(username: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/token/`, { username, password });
   }
+  
+  registerClient(donneesClient: any): Observable<any> {
+    // L'endpoint correspond généralement à l'URL liée à ton ClientViewSet
+    return this.http.post<any>(`${this.apiUrl}/clients/`, donneesClient);
+  }
 
   /**
    * Enregistre un nouveau bureau dans le backend Django (Réservé Admin/Staff)
@@ -59,6 +64,13 @@ export class ApiService {
   /**
    * Récupère le profil d'un client spécifique par son ID
    */
+  getBatiments(): Observable<any[]> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${this.apiUrl}/batiments/`, { headers }).pipe(
+      map(response => response.results || response)
+    );
+  }
+  
   getProfile(userId: number): Observable<any> {
     const headers = this.getAuthHeaders();
     return this.http.get<any>(`${this.apiUrl}/clients/${userId}/`, { headers });
@@ -78,6 +90,13 @@ export class ApiService {
     );
   }
 
+  getContrats(): Observable<any[]> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${this.apiUrl}/contrats/`, { headers }).pipe(
+      map(response => response.results || response)
+    );
+  }
+
   getPaiements(): Observable<any[]> {
     const headers = this.getAuthHeaders();
     return this.http.get<any>(`${this.apiUrl}/paiements/`, { headers }).pipe(
@@ -93,5 +112,52 @@ export class ApiService {
       date_fin: dateFin
     };
     return this.http.post<any>(`${this.apiUrl}/reservations/`, body, { headers });
+  }
+  
+  /* méthode HTTP POST pour cibler l'endpoint */
+  validerPaiement(paiementId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${this.apiUrl}/paiements/${paiementId}/valider-paiement/`, {}, { headers });
+  }
+
+  // ==========================================
+  // NOUVELLES MÉTHODES AJOUTÉES
+  // ==========================================
+
+  /**
+   * AJOUT 1 : Créer une location directe (immédiate) sans passer par une réservation
+   */
+  creerLocationDirecte(bureauId: number, dateDebut: string, dateFin: string): Observable<any> {
+    const headers = this.getAuthHeaders();
+    const body = {
+      bureau: bureauId,
+      date_debut: dateDebut,
+      date_fin: dateFin
+    };
+    // Adapte l'URL selon ton routage Django (ex: /locations/ ou /locations/louer-immédiat/)
+    return this.http.post<any>(`${this.apiUrl}/locations/`, body, { headers });
+  }
+
+  /**
+   * AJOUT 2 : Convertir une réservation existante en un contrat de location actif
+   */
+  convertirReservationEnLocation(reservationId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    // Utilise une action personnalisée sur le ViewSet de tes réservations
+    return this.http.post<any>(`${this.apiUrl}/reservations/${reservationId}/convertir-location/`, {}, { headers });
+  }
+
+  /**
+   * AJOUT 3 : Soumettre une demande d'enregistrement de paiement (Statut initial En Attente)
+   */
+  soumettreDemandePaiement(donneesPaiement: { contrat: string; mode: string; mois_paye: number }): Observable<any> {
+    const headers = this.getAuthHeaders();
+    const body = {
+      contrat: Number(donneesPaiement.contrat),
+      mode_paiement: donneesPaiement.mode,
+      mois_paye: donneesPaiement.mois_paye,
+      annee_paye: new Date().getFullYear() // Envoie automatiquement l'année en cours
+    };
+    return this.http.post<any>(`${this.apiUrl}/paiements/`, body, { headers });
   }
 }

@@ -1,12 +1,13 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms'; // AJOUT : Requis pour utiliser ngModel dans le formulaire de paiement
 import { ApiService } from '../services/api';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule], // AJOUT : Intégration de FormsModule ici
   templateUrl: './dashboard.html', 
   styleUrls: ['./dashboard.css']
 })
@@ -19,27 +20,34 @@ export class DashboardComponent implements OnInit {
   bureauxDisponibles = signal<any[]>([]);
   reservations = signal<any[]>([]);
   paiements = signal<any[]>([]);
+  contrats = signal<any[]>([]);
   
   bureauSelectionneId = signal<number | null>(null);
   selectedReservation = signal<any | null>(null);
+  
   // Gestion des formulaires via un Signal dictionnaire réactif
   formReservation = signal<{ [key: number]: { dateDebut: string; dateFin: string } }>({});
+
+  // AJOUT : Structure réactive pour le formulaire de déclaration de paiement
+  formPaiement = signal({
+    contrat: '',
+    mode: 'CASH',
+    mois_paye: new Date().getMonth() + 1
+  });
 
   toggleReservationDetails(reservation: any, indexCalcule: number): void {
     console.log('Réservation cliquée :', reservation, 'Index :', indexCalcule);
     
     if (this.selectedReservation()?.id === reservation.id) {
-      this.selectedReservation.set(null); // On ferme si on re-clique sur le même
+      this.selectedReservation.set(null);
     } else {
-      // On fusionne l'index calculé dans l'objet pour le retrouver dans le HTML
       const reservationAvecIndex = { ...reservation, indexAffichage: indexCalcule };
-      this.selectedReservation.set(reservationAvecIndex); // On ouvre le nouveau
+      this.selectedReservation.set(reservationAvecIndex);
     }
   }
 
   ngOnInit(): void {
     const token = localStorage.getItem('access_token');
-    
     if (token) {
       this.chargerDonneesTableauDeBord();
     } else {
@@ -49,11 +57,7 @@ export class DashboardComponent implements OnInit {
 
   onLogout(): void {
     if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-      // Nettoyage complet des données d'authentification locales
       localStorage.clear(); 
-      
-      // 2. On redirige instantanément l'utilisateur vers la page de login
-      // Remplacez '/login' par le chemin exact défini dans votre app.routes.ts
       this.router.navigate(['/login']);
     }
   }
@@ -65,30 +69,26 @@ export class DashboardComponent implements OnInit {
     this.apiService.login(username, password).subscribe({
       next: (tokens: any) => {
         localStorage.setItem('access_token', tokens.access);
-        // ALIGNEMENT : api.ts extrait désormais l'ID via le JWT, mais on le garde en cache par sécurité
         if (tokens.user_id) {
           localStorage.setItem('user_id', tokens.user_id.toString());
         }
         this.chargerDonneesTableauDeBord();
       },
-      error: (err: any) => console.error('La connexion a échoué. Vérifiez vos identifiants Django.', err)
+      error: (err: any) => console.error('La connexion a échoué.', err)
     });
   }
 
   chargerDonneesTableauDeBord(): void {
     console.log("Démarrage du chargement des données via Token JWT...");
   
-    // 1. Profil utilisateur connecté (reçoit l'objet direct grâce au décodage JWT dans api.ts)
     this.apiService.getMonProfil().subscribe({
       next: (data: any) => this.client.set(data),
       error: (err: any) => console.error('⚠️ Erreur profil :', err)
     });
   
-    // 2. Bureaux Disponibles
     this.apiService.getBureauxDisponibles().subscribe({
       next: (data: any[]) => { 
         this.bureauxDisponibles.set(data);
-        
         const initialForms: { [key: number]: { dateDebut: string; dateFin: string } } = {};
         data.forEach((b: any) => {
           initialForms[b.id] = { dateDebut: '', dateFin: '' };
@@ -98,17 +98,19 @@ export class DashboardComponent implements OnInit {
       error: (err: any) => console.error('⚠️ Erreur bureaux :', err)
     });
   
-    // 3. Réservations (filtrées automatiquement côté backend par client)
     this.apiService.getMesReservations().subscribe({
       next: (data: any) => {
-        // Si Django renvoie de la pagination, on prend .results, sinon on prend data en secours
         const listeReservations = data && data.results ? data.results : data;
         this.reservations.set(listeReservations);
       },
       error: (err: any) => console.error('⚠️ Erreur réservations :', err)
     });
+
+    this.apiService.getContrats().subscribe({
+      next: (data: any[]) => this.contrats.set(data),
+      error: (err: any) => console.error('⚠️ Erreur contrats :', err)
+    });
   
-    // 4. Paiements (filtrés automatiquement côté backend par client)
     this.apiService.getPaiements().subscribe({
       next: (data: any) => this.paiements.set(data),
       error: (err: any) => console.error('⚠️ Erreur paiements :', err)
@@ -129,23 +131,17 @@ export class DashboardComponent implements OnInit {
     this.bureauSelectionneId.update(id => id === bureauId ? null : bureauId);
   }
 
-  /**
-   * Méthode utilitaire pour forcer et nettoyer le format YYYY-MM-DD pour Django
-   */
   private formaterDatePourDjango(dateInput: any): string {
     if (!dateInput) return '';
     const d = new Date(dateInput);
-    
     const annee = d.getFullYear();
     const mois = ('0' + (d.getMonth() + 1)).slice(-2);
     const jour = ('0' + d.getDate()).slice(-2);
-    
     return `${annee}-${mois}-${jour}`;
   }
 
   onReserver(bureauId: number): void {
     const dates = this.formReservation()[bureauId];
-    
     if (!dates || !dates.dateDebut || !dates.dateFin) {
       alert('Veuillez renseigner les deux dates.');
       return;
@@ -158,21 +154,79 @@ export class DashboardComponent implements OnInit {
       next: () => {
         alert('Réservation enregistrée avec succès !');
         this.bureauSelectionneId.set(null);
-        this.chargerDonneesTableauDeBord(); // Rafraîchissement automatique et instantané
+        this.chargerDonneesTableauDeBord();
       },
-      error: (err: any) => {
-        console.error("Détails de l'erreur backend :", err);
-        
-        // AMÉLIORATION : Extraction propre des erreurs de validation levées par le modèle Django
-        if (err.error && typeof err.error === 'object') {
-          const clesErreurs = Object.keys(err.error);
-          // Récupère le premier message d'erreur dictionnaire (ex: pour la clé 'date_debut' ou 'non_field_errors')
-          const premierMessage = err.error[clesErreurs[0]];
-          alert(`Erreur de validation : ${Array.isArray(premierMessage) ? premierMessage[0] : premierMessage}`);
-        } else {
-          alert('Erreur lors de la réservation : ' + (err.message || 'Erreur serveur inconnue.'));
-        }
-      }
+      error: (err: any) => this.gererErreurBackend(err)
     });
+  }
+
+  // AJOUT 1 : Louer instantanément sans réservation préalable
+  onLouerDirectement(bureauId: number): void {
+    const dates = this.formReservation()[bureauId];
+    if (!dates || !dates.dateDebut || !dates.dateFin) {
+      alert('Veuillez spécifier les dates de début et de fin pour générer la location immédiate.');
+      return;
+    }
+
+    const dateDebutNettoyee = this.formaterDatePourDjango(dates.dateDebut);
+    const dateFinNettoyee = this.formaterDatePourDjango(dates.dateFin);
+
+    if (confirm('Confirmez-vous la création d\'une location immédiate pour ce bureau ?')) {
+      this.apiService.creerLocationDirecte(bureauId, dateDebutNettoyee, dateFinNettoyee).subscribe({
+        next: (reponse: any) => {
+          alert('Location immédiate enregistrée en base de données avec succès !');
+          this.bureauSelectionneId.set(null);
+          this.chargerDonneesTableauDeBord();
+        },
+        error: (err: any) => this.gererErreurBackend(err)
+      });
+    }
+  }
+
+  // AJOUT 2 : Convertir une réservation existante en contrat de location actif
+  onLouerDepuisReservation(reservation: any): void {
+    if (confirm(`Voulez-vous transformer la réservation #${reservation.id} en location active maintenant ?`)) {
+      this.apiService.convertirReservationEnLocation(reservation.id).subscribe({
+        next: () => {
+          alert('La réservation a été validée et enregistrée en tant que location active !');
+          this.selectedReservation.set(null);
+          this.chargerDonneesTableauDeBord();
+        },
+        error: (err: any) => this.gererErreurBackend(err)
+      });
+    }
+  }
+
+  // AJOUT 3 : Déclarer un paiement (POST) destiné à être validé par le Staff/Admin
+  onSoumettrePaiement(): void {
+    const dataPaiement = this.formPaiement();
+    if (!dataPaiement.contrat) {
+      alert('Veuillez saisir un numéro de contrat valide.');
+      return;
+    }
+
+    this.apiService.soumettreDemandePaiement(dataPaiement).subscribe({
+      next: () => {
+        alert('Demande d\'encaissement envoyée ! Elle apparaîtra comme "En attente" jusqu\'à ce qu\'un administrateur ou un travailleur la valide.');
+        // Réinitialisation du champ contrat
+        this.formPaiement.update(f => ({ ...f, contrat: '' }));
+        this.chargerDonneesTableauDeBord();
+      },
+      error: (err: any) => this.gererErreurBackend(err)
+    });
+  }
+
+  /**
+   * Centralisation du traitement des erreurs HTTP du backend Django Rest Framework
+   */
+  private gererErreurBackend(err: any): void {
+    console.error("Détails de l'erreur backend :", err);
+    if (err.error && typeof err.error === 'object') {
+      const clesErreurs = Object.keys(err.error);
+      const premierMessage = err.error[clesErreurs[0]];
+      alert(`Erreur : ${Array.isArray(premierMessage) ? premierMessage[0] : premierMessage}`);
+    } else {
+      alert('Une erreur est survenue lors de l\'opération : ' + (err.error?.detail || err.message || 'Erreur inconnue.'));
+    }
   }
 }
