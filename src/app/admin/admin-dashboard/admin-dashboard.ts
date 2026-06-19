@@ -15,13 +15,14 @@ export class AdminDashboardComponent implements OnInit {
   private apiService = inject(ApiService);
   private router = inject(Router);
 
-  ongletActif = signal<'vue-ensemble' | 'bureaux' | 'reservations' | 'paiements'>('vue-ensemble');
+  // Élargissement du type pour inclure l'onglet 'contrats'
+  ongletActif = signal<'vue-ensemble' | 'bureaux' | 'reservations' | 'contrats' | 'paiements'>('vue-ensemble');
   listeBureaux = signal<any[]>([]);
   listeReservations = signal<any[]>([]);
   listePaiements = signal<any[]>([]);
   totalRevenus = signal<number>(0);
-  // 1. Déclare le signal pour stocker la liste
   batiments = signal<any[]>([]);
+  listeContrats = signal<any[]>([]); // Stockage des contrats
 
   bureauForm = signal({
     numero: '',
@@ -35,11 +36,9 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.chargerDonneesAdmin();
-    
   }
 
   chargerDonneesAdmin(): void {
-    // 2. Ajoute ceci à ta fonction de chargement des données
     this.apiService.getBatiments().subscribe({
       next: (data: any[]) => this.batiments.set(data),
       error: (err: any) => console.error('⚠️ Erreur lors du chargement des bâtiments :', err)
@@ -53,6 +52,12 @@ export class AdminDashboardComponent implements OnInit {
     this.apiService.getMesReservations().subscribe({
       next: (data) => this.listeReservations.set(data),
       error: (err) => console.error('Erreur réservations admin', err)
+    });
+
+    // AJOUT : Chargement de tous les contrats du parc immobilier
+    this.apiService.getContrats().subscribe({
+      next: (data) => this.listeContrats.set(data),
+      error: (err) => console.error('Erreur contrats admin', err)
     });
 
     this.apiService.getPaiements().subscribe({
@@ -94,7 +99,8 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  changerOnglet(onglet: 'vue-ensemble' | 'bureaux' | 'reservations' | 'paiements'): void {
+  // Type également mis à jour ici
+  changerOnglet(onglet: 'vue-ensemble' | 'bureaux' | 'reservations' | 'contrats' | 'paiements'): void {
     this.ongletActif.set(onglet);
   }
 
@@ -103,20 +109,16 @@ export class AdminDashboardComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
-
-  // fonction qui va déclencher l'appel API et rafraîchir la liste instantanément sans recharger la page  
   validerLePaiement(paiementId: number): void {
     if (confirm('Voulez-vous vraiment marquer ce paiement comme PAYÉ ?')) {
       this.apiService.validerPaiement(paiementId).subscribe({
         next: (res) => {
           alert(res.detail || 'Paiement validé avec succès !');
           
-          // Mise à jour en temps réel de la liste des paiements dans l'interface
           this.listePaiements.update(paiements => 
             paiements.map(p => p.id === paiementId ? { ...p, statut: 'PAID' } : p)
           );
           
-          // Optionnel : Recalculer les revenus globaux affichés sur le KPI suite à la validation
           this.recalculerRevenus();
         },
         error: (err) => {
@@ -127,7 +129,6 @@ export class AdminDashboardComponent implements OnInit {
     }
   }
   
-  // Petite fonction d'aide pour recalculer le KPI automatiquement
   private recalculerRevenus(): void {
     const revenus = this.listePaiements()
       .filter((p: any) => p.statut === 'PAID')

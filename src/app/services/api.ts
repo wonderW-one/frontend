@@ -113,6 +113,19 @@ export class ApiService {
     };
     return this.http.post<any>(`${this.apiUrl}/reservations/`, body, { headers });
   }
+  /**
+ * Crée un contrat direct/immédiat pour un bureau spécifique
+ */
+ creerContratDirect(bureauId: number, dateDebut: string, dateFin: string): Observable<any> {
+  const payload = {
+    bureau: bureauId,
+    date_debut: dateDebut,
+    date_fin: dateFin
+  };
+  
+  // Ajustez l'URL '/api/contrats/creer-direct/' selon votre route Django réelle
+   return this.http.post(`${this.apiUrl}/contrats/creer-direct/`, payload);
+ }
   
   /* méthode HTTP POST pour cibler l'endpoint */
   validerPaiement(paiementId: number): Observable<any> {
@@ -145,6 +158,14 @@ export class ApiService {
     const headers = this.getAuthHeaders();
     // Utilise une action personnalisée sur le ViewSet de tes réservations
     return this.http.post<any>(`${this.apiUrl}/reservations/${reservationId}/convertir-location/`, {}, { headers });
+  }
+  /**
+   * Convertit une réservation existante en un contrat actif
+   */
+  convertirReservationEnContrat(reservationId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    // Endpoint ajusté vers le endpoint personnalisé de vos réservations ou contrats
+    return this.http.post<any>(`${this.apiUrl}/reservations/${reservationId}/convertir-contrat/`, {}, { headers });
   }
 
   /**

@@ -164,17 +164,18 @@ export class DashboardComponent implements OnInit {
   onLouerDirectement(bureauId: number): void {
     const dates = this.formReservation()[bureauId];
     if (!dates || !dates.dateDebut || !dates.dateFin) {
-      alert('Veuillez spécifier les dates de début et de fin pour générer la location immédiate.');
+      alert('Veuillez spécifier les dates de début et de fin pour générer le contrat immédiat.');
       return;
     }
-
+  
     const dateDebutNettoyee = this.formaterDatePourDjango(dates.dateDebut);
     const dateFinNettoyee = this.formaterDatePourDjango(dates.dateFin);
-
-    if (confirm('Confirmez-vous la création d\'une location immédiate pour ce bureau ?')) {
-      this.apiService.creerLocationDirecte(bureauId, dateDebutNettoyee, dateFinNettoyee).subscribe({
+  
+    if (confirm('Confirmez-vous la création d\'un contrat immédiat pour ce bureau ?')) {
+      // Appel du service modifié pour les contrats
+      this.apiService.creerContratDirect(bureauId, dateDebutNettoyee, dateFinNettoyee).subscribe({
         next: (reponse: any) => {
-          alert('Location immédiate enregistrée en base de données avec succès !');
+          alert('Contrat immédiat enregistré en base de données avec succès !');
           this.bureauSelectionneId.set(null);
           this.chargerDonneesTableauDeBord();
         },
@@ -185,10 +186,11 @@ export class DashboardComponent implements OnInit {
 
   // AJOUT 2 : Convertir une réservation existante en contrat de location actif
   onLouerDepuisReservation(reservation: any): void {
-    if (confirm(`Voulez-vous transformer la réservation #${reservation.id} en location active maintenant ?`)) {
-      this.apiService.convertirReservationEnLocation(reservation.id).subscribe({
+    if (confirm(`Voulez-vous transformer la réservation #${reservation.id} en contrat actif maintenant ?`)) {
+      // Appel de la nouvelle méthode du service API pour les contrats
+      this.apiService.convertirReservationEnContrat(reservation.id).subscribe({
         next: () => {
-          alert('La réservation a été validée et enregistrée en tant que location active !');
+          alert('La réservation a été validée et enregistrée en tant que contrat actif !');
           this.selectedReservation.set(null);
           this.chargerDonneesTableauDeBord();
         },

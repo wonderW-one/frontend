@@ -106,7 +106,42 @@
         </table>
       </section>
     }
-
+    @if (ongletActif() === 'contrats') {
+      <section class="admin-section">
+        <h2>Registre Central des Contrats de Location</h2>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>N° Contrat</th>
+              <th>Client</th>
+              <th>Espace</th>
+              <th>Date Début</th>
+              <th>Date Fin</th>
+              <th>Tarif Mensuel</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (contrat of listeContrats(); track contrat.id) {
+              <tr>
+                <td><strong>#{{ contrat.id }}</strong></td>
+                <td>{{ contrat.client_prenom || 'Client #' + contrat.client }}</td>
+                <td><span class="badge-type-sm">Bureau {{ contrat.bureau_name || contrat.bureau }}</span></td>
+                <td>{{ contrat.date_debut | date:'dd/MM/yyyy' }}</td>
+                <td>{{ contrat.date_fin | date:'dd/MM/yyyy' }}</td>
+                <td><strong class="text-indigo">{{ contrat.montant | number }} BIF</strong></td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="text-muted" style="text-align: center; padding: 20px;">
+                  Aucun contrat de location enregistré en base de données.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+    
     @if (ongletActif() === 'paiements') {
       <section class="admin-section">
         <h2>Journal Général des Transactions</h2>
