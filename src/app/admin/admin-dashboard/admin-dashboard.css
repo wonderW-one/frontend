@@ -71,3 +71,16 @@
 .form-row { display: flex; gap: 15px; flex-wrap: wrap; }
 .admin-form input { flex: 1; min-width: 150px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
 .btn-submit-bureau { background-color: #4f46e5; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+.form-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap; /* Permet aux champs de passer à la ligne proprement sur petit écran */
+  align-items: center;
+}
+
+.form-select, .form-row input {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 150px;
+}

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { jwtDecode } from 'jwt-decode'; // Importation de la bibliothèque
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +23,14 @@ export class ApiService {
   }
 
   /**
+   * Enregistre un nouveau bureau dans le backend Django (Réservé Admin/Staff)
+   */
+  creerBureau(donneesBureau: any): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${this.apiUrl}/bureaux/`, donneesBureau, { headers });
+  }
+
+  /**
    * SOLUTION ALTERNATIVE : Décode le token JWT pour trouver l'ID de l'utilisateur
    * et appelle directement l'endpoint individuel /clients/{id}/
    */
@@ -34,17 +42,13 @@ export class ApiService {
     }
 
     try {
-      // Décodage du token pour récupérer les infos
       const decoded: any = jwtDecode(token);
-      
-      // ATTENTION : Vérifie le nom de la clé dans ton token (souvent 'user_id' ou 'sub')
       const userId = decoded.user_id || decoded.sub; 
 
       if (!userId) {
         return throwError(() => new Error('ID utilisateur introuvable dans le token'));
       }
 
-      // On réutilise ton endpoint existant /api/clients/{id}/
       return this.getProfile(userId);
 
     } catch (error) {
@@ -53,7 +57,7 @@ export class ApiService {
   }
 
   /**
-   * Récupère le profil d'un client spécifique par son ID (Utilisé par Admin / Staff ET maintenant par le client lui-même)
+   * Récupère le profil d'un client spécifique par son ID
    */
   getProfile(userId: number): Observable<any> {
     const headers = this.getAuthHeaders();

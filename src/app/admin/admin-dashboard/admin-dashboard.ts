@@ -1,13 +1,13 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule , ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule , ReactiveFormsModule],
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css']
 })
@@ -23,11 +23,12 @@ export class AdminDashboardComponent implements OnInit {
 
   bureauForm = signal({
     numero: '',
+    niveau: 0,
     espace: 0,
     prix: 0,
-    unite: 'Mois',
+    unite: 0,
     batiment: '', 
-    type_bureau: '' 
+    type: 0
   });
 
   ngOnInit(): void {
@@ -49,8 +50,11 @@ export class AdminDashboardComponent implements OnInit {
       next: (data) => {
         this.listePaiements.set(data);
         const revenus = data
-          .filter((p: any) => p.statut_paiement === 'PAYE' || p.statut_paiement === 'PAID')
-          .reduce((sum: number, current: any) => sum + Number(current.montant), 0);
+        .filter((p: any) => {
+          const statut = p.statut || p.statut_paiement;
+          return statut === 'PAID' || statut === 'PAYE' || statut === 'COMPLETED';
+        })
+        .reduce((sum: number, current: any) => sum + Number(current.montant), 0);
         this.totalRevenus.set(revenus);
       },
       error: (err) => console.error('Erreur paiements admin', err)
@@ -58,13 +62,27 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   ajouterBureau(): void {
+    console.log('--- tentative d’ajout de bureau ---');
     const donnees = this.bureauForm();
-    if (!donnees.numero || !donnees.prix) {
-      alert('Veuillez remplir les champs obligatoires.');
-      return;
+    console.log('Données actuelles du formulaire :', donnees);
+  
+    if (!donnees.numero || !donnees.espace) {
+        alert('Veuillez remplir le numéro et la superficie.');
+        return;
     }
-    console.log('Données envoyées au backend Django :', donnees);
-    alert('Action simulée avec succès ! (Données prêtes pour Django)');
+  
+    console.log('Envoi de la requête HTTP via ApiService...');
+    this.apiService.creerBureau(donnees).subscribe({
+      next: (res) => {
+        console.log('Réponse positive du serveur Django !', res);
+        alert('Bureau enregistré !');
+        this.listeBureaux.update(b => [...b, res]);
+      },
+      error: (err) => {
+        console.error('Le serveur Django a renvoyé une erreur :', err);
+        alert(`Erreur serveur : ${err.status} - ${err.message}`);
+      }
+    });
   }
 
   changerOnglet(onglet: 'vue-ensemble' | 'bureaux' | 'reservations' | 'paiements'): void {
