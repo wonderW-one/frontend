@@ -76,6 +76,14 @@ export class ApiService {
     return this.http.get<any>(`${this.apiUrl}/clients/${userId}/`, { headers });
   }
 
+  getBureaux(): Observable<any[]> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${this.apiUrl}/bureaux/`, { headers }).pipe(
+      map(response => response.results || response)
+    );
+  }
+
+
   getBureauxDisponibles(): Observable<any[]> {
     const headers = this.getAuthHeaders();
     return this.http.get<any>(`${this.apiUrl}/bureaux/disponibles/`, { headers }).pipe(
@@ -124,7 +132,7 @@ export class ApiService {
   };
   
   // Ajustez l'URL '/api/contrats/creer-direct/' selon votre route Django réelle
-   return this.http.post(`${this.apiUrl}/contrats/creer-direct/`, payload);
+   return this.http.post(`${this.apiUrl}/contrats/`, payload);
  }
   
   /* méthode HTTP POST pour cibler l'endpoint */

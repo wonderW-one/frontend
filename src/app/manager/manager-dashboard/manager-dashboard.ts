@@ -16,6 +16,7 @@ export class ManagerDashboardComponent implements OnInit {
 
   listeReservations = signal<any[]>([]);
   listePaiements = signal<any[]>([]);
+  listelocation = signal<any[]>([]);
   chiffreAffaire = signal<number>(0);
 
   ngOnInit(): void {
@@ -27,9 +28,10 @@ export class ManagerDashboardComponent implements OnInit {
     this.apiService.getPaiements().subscribe(data => {
       this.listePaiements.set(data);
       const total = data
-        .filter((p: any) => p.statut_paiement === 'PAYE' || p.statut_paiement === 'PAID')
+        .filter((p: any) => p.statut === 'PAID')
         .reduce((sum: number, current: any) => sum + Number(current.montant), 0);
       this.chiffreAffaire.set(total);
+      this.apiService.getContrats().subscribe(data => this.listelocation.set(data));
     });
   }
 

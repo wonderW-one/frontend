@@ -35,7 +35,7 @@ export const routes: Routes = [
     path: 'staff-dashboard', 
     component: StaffDashboardComponent, 
     canActivate: [authGuard], 
-    data: { roleAttendu: 'STAFF' } 
+    data: { roleAttendu: 'TRAVAILLEUR' } 
   },
 
   // Redirections par défaut (sans slash initial)

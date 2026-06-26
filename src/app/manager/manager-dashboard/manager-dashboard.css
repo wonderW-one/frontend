@@ -98,3 +98,6 @@
     color: #16a34a;
     font-weight: bold;
   }
+
+  .btn-logout { width: 100%; background-color: #ef4444; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+  .btn-logout:hover { background-color: #dc2626; }

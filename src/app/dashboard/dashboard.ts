@@ -21,6 +21,7 @@ export class DashboardComponent implements OnInit {
   reservations = signal<any[]>([]);
   paiements = signal<any[]>([]);
   contrats = signal<any[]>([]);
+  bureaux = signal<any[]>([]);
   
   bureauSelectionneId = signal<number | null>(null);
   selectedReservation = signal<any | null>(null);
@@ -85,7 +86,11 @@ export class DashboardComponent implements OnInit {
       next: (data: any) => this.client.set(data),
       error: (err: any) => console.error('⚠️ Erreur profil :', err)
     });
-  
+    this.apiService.getBureaux().subscribe({
+      next: (data: any[]) => this.bureaux.set(data),
+      error: (err: any) => console.error('⚠️ Erreur cool :', err)
+    });
+
     this.apiService.getBureauxDisponibles().subscribe({
       next: (data: any[]) => { 
         this.bureauxDisponibles.set(data);
@@ -97,6 +102,7 @@ export class DashboardComponent implements OnInit {
       },
       error: (err: any) => console.error('⚠️ Erreur bureaux :', err)
     });
+
   
     this.apiService.getMesReservations().subscribe({
       next: (data: any) => {
@@ -128,6 +134,9 @@ export class DashboardComponent implements OnInit {
   }
 
   toggleDetails(bureauId: number): void {
+    this.bureauSelectionneId.update(id => id === bureauId ? null : bureauId);
+  }
+  toggleDetail(bureauId: number): void {
     this.bureauSelectionneId.update(id => id === bureauId ? null : bureauId);
   }
 

@@ -53,7 +53,103 @@
     </aside>
   
     <main class="main-content">
-        
+      
+      
+      
+      
+      <section class="content-section">
+        <div class="section-header-inline">
+          <div class="icon-wrapper bg-slate-light text-slate">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-md">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 16.5h1.5M13.5 16.5H15m-7.5 4.5h9" />
+            </svg>
+          </div>
+          <h2 class="section-title-lg">Listes des Bureaux</h2>
+        </div>
+      
+        @if (bureaux().length > 0) {
+          <div class="bureau-list-container">
+            @for (bureau of bureaux(); track bureau.id) {
+              <div class="bureau-list-item shadow-box" [class.is-expanded]="bureauSelectionneId() === bureau.id">
+                
+                <div class="bureau-item-summary" (click)="toggleDetails(bureau.id)">
+                  <div class="bureau-item-info">
+                    <div class="title-block">
+                      <h3 class="bureau-name-link" style="margin-bottom: 4px;">{{ bureau?.batiment_detail?.nom }}</h3>
+                      <h3 class="bureau-name-link">Bureau {{ bureau?.numero }}</h3>
+                      <span class="badge-type">{{ bureau?.type_detail?.nom || 'Standard' }}</span>
+                    </div>
+                    <p class="bureau-mini-specs">
+                      Étage : <span class="text-dark">{{ bureau?.niveau_detail?.nom || 'N/A' }}</span> • 
+                      Superficie : <span class="text-dark">{{ bureau?.espace }}m²</span> •
+                      Prix unitaire : <span class="text-dark">{{ bureau?.unite }} Fbu</span>
+                    </p>
+                  </div>
+                  
+                  <div class="bureau-item-actions">
+                    <div class="price-tag">
+                      {{ bureau?.prix | number }} <span class="currency-sm">BIF</span>
+                    </div>
+                    <button class="btn-toggle" [class.rotated]="bureauSelectionneId() === bureau.id">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="icon-xs">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                
+                @if (bureauSelectionneId() === bureau.id) {
+                  <div class="bureau-item-details">
+                    <form class="booking-form-inline">
+                      <div class="form-grid-inline">
+                        
+                        <div class="input-group">
+                          <label class="input-label">Date de début</label>
+                          <input type="date" 
+                                 [value]="formReservation()[bureau.id]?.dateDebut || ''"
+                                 (input)="updateDate(bureau.id, 'dateDebut', $any($event.target).value)"
+                                 required 
+                                 class="custom-input">
+                        </div>
+
+                        <div class="input-group">
+                          <label class="input-label">Date de fin</label>
+                          <input type="date" 
+                                 [value]="formReservation()[bureau.id]?.dateFin || ''"
+                                 (input)="updateDate(bureau.id, 'dateFin', $any($event.target).value)"
+                                 required 
+                                 class="custom-input">
+                        </div>
+
+                        <div class="button-group-inline" style="display: flex; gap: 10px;">
+                          <button type="button" (click)="onReserver(bureau.id)" class="btn-primary-inline">
+                            Réserver l'espace
+                          </button>
+                          <button type="button" (click)="onLouerDirectement(bureau.id)" class="btn-success-inline" style="background-color: #10b981; color: white;">
+                            ⚡ Louer maintenant
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <p>Aucun bureaux mis a jour actuellement.</p>
+          </div>
+        }
+      </section>
+
+
+
+
+
+
+
+
       <section class="content-section">
         <div class="section-header-inline">
           <div class="icon-wrapper bg-slate-light text-slate">
