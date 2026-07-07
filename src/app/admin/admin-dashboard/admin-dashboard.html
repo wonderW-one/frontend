@@ -7,6 +7,9 @@
       <button [class.active]="ongletActif() === 'vue-ensemble'" (click)="changerOnglet('vue-ensemble')">Vue d'ensemble</button>
       <button [class.active]="ongletActif() === 'bureaux'" (click)="changerOnglet('bureaux')">Gestion des Bureaux</button>
       <button [class.active]="ongletActif() === 'reservations'" (click)="changerOnglet('reservations')">Réservations globales</button>
+      <button [class.active]="ongletActif() === 'contrats'" (click)="changerOnglet('contrats')">Registre des Contrats</button>
+      <button [class.active]="ongletActif() === 'suivi-clients'" (click)="changerOnglet('suivi-clients')">👥 Clients & Bureaux</button>
+      <button [class.active]="ongletActif() === 'suivi-workers'" (click)="changerOnglet('suivi-workers')">🛠️ Encaisses validées</button>
       <button [class.active]="ongletActif() === 'paiements'" (click)="changerOnglet('paiements')">Flux des Paiements</button>
     </nav>
     <div class="sidebar-footer">
@@ -21,7 +24,7 @@
         <div class="kpi-grid">
           <div class="kpi-card">
             <span class="kpi-title">Revenus Totaux Perçus</span>
-            <span class="kpi-value text-success">{{ totalRevenus() | number }} BIF</span>
+            <span class="kpi-value text-success">{{ totalRevenus() | number }} FBU</span>
           </div>
           <div class="kpi-card">
             <span class="kpi-title">Réservations Actives</span>
@@ -41,24 +44,30 @@
         <form (submit)="ajouterBureau(); $event.preventDefault()" class="admin-form">
           <div class="form-row">
             <input type="text" placeholder="Numéro du bureau" [(ngModel)]="bureauForm().numero" name="numero" required>
-            <input type="number" placeholder="Niveau combien" [(ngModel)]="bureauForm().niveau" name="niveau" required>
-            <input type="number" placeholder="Superficie (m²)" [(ngModel)]="bureauForm().espace" name="espace">
+            <input type="number" placeholder="Superficie (m²)" [(ngModel)]="bureauForm().espace" name="espace" required>
             <input type="number" placeholder="Prix unitaire" [(ngModel)]="bureauForm().unite" name="prix_unitaire" required>
-            
-            
+
             <select [(ngModel)]="bureauForm().batiment" name="batiment" required class="form-select">
               <option value="" disabled selected>Choisir un bâtiment</option>
-  
               @for (batiment of batiments(); track batiment.id) {
                 <option [value]="batiment.id">{{ batiment.nom }}</option>
               }
             </select>
 
+            <!-- ✅ CORRIGÉ : plus de saisie libre, vrai select alimenté par l'API, filtré par bâtiment -->
+            <select [(ngModel)]="bureauForm().niveau" name="niveau" required class="form-select" [disabled]="!bureauForm().batiment">
+              <option value="" disabled selected>Choisir un niveau</option>
+              @for (niveau of niveauxDuBatimentSelectionne(); track niveau.id) {
+                <option [value]="niveau.id">{{ niveau.nom }}</option>
+              }
+            </select>
+
+            <!-- ✅ CORRIGÉ : plus d'ID codés en dur, vrai select alimenté par l'API -->
             <select [(ngModel)]="bureauForm().type" name="type_bureau" required class="form-select">
               <option value="" disabled selected>Type de bureau</option>
-              <option value="1">Bureau Individuel</option>
-              <option value="2">Espace Coworking</option>
-              <option value="3">Salle de Réunion</option>
+              @for (type of typesBureau(); track type.id) {
+                <option [value]="type.id">{{ type.nom }}</option>
+              }
             </select>
 
             <button type="submit" class="btn-submit-bureau">Enregistrer le bureau</button>
@@ -68,16 +77,27 @@
         <h2>Parc des Bureaux</h2>
         <table class="admin-table">
           <thead>
-            <tr><th>Nom Batiment</th><th>Nom bureau</th><th>Niveau</th><th>Superficie</th><th>Prix (BIF)</th></tr>
+            <tr><th>Nom Batiment</th><th>Nom bureau</th><th>Niveau</th><th>Superficie</th><th>Statut</th><th>Prix (FBU)</th></tr>
           </thead>
           <tbody>
             @for (bureau of listeBureaux(); track bureau.id) {
               <tr>
                 <td><strong>{{ bureau?.batiment_detail?.nom }}</strong></td>
                 <td><strong>Bureau {{ bureau?.numero }}</strong></td>
-                <td> {{ bureau?.niveau_detail?.nom }}</td>
+                <td>{{ bureau?.niveau_detail?.nom }}</td>
                 <td>{{ bureau?.espace }} m²</td>
-                <td>{{ bureau?.prix | number }} BIF</td>
+                <td>
+                  <span class="status-indicator" [class.paid]="bureau?.statut === 'DISPONIBLE'">
+                    {{ bureau?.statut === 'DISPONIBLE' ? 'Disponible' : 'Occupé' }}
+                  </span>
+                </td>
+                <td>{{ bureau?.prix | number }} FBU</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="text-muted" style="text-align: center; padding: 20px;">
+                  Aucun bureau enregistré.
+                </td>
               </tr>
             }
           </tbody>
@@ -90,22 +110,24 @@
         <h2>Historique Central des Réservations</h2>
         <table class="admin-table">
           <thead>
-            <tr><th>ID</th><th>Client</th><th>Bureau</th><th>Date Début</th><th>Date Fin</th></tr>
+            <tr><th>ID</th><th>Client</th><th>Bureau</th><th>Période de réservation</th><th>Statut Temporel</th></tr>
           </thead>
           <tbody>
             @for (res of listeReservations(); track res.id) {
+              @let temporel = getStatutTemporel(res.date_debut, res.date_fin);
               <tr>
                 <td>#{{ res.id }}</td>
                 <td>{{ res.client_prenom }}</td>
                 <td>Bureau {{ res.bureau_name }}</td>
-                <td>{{ res.date_debut | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td>{{ res.date_fin | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>Du {{ res.date_debut | date:'dd/MM/yyyy' }} au {{ res.date_fin | date:'dd/MM/yyyy' }}</td>
+                <td><span class="badge {{ temporel.css }}">{{ temporel.label }}</span></td>
               </tr>
             }
           </tbody>
         </table>
       </section>
     }
+
     @if (ongletActif() === 'contrats') {
       <section class="admin-section">
         <h2>Registre Central des Contrats de Location</h2>
@@ -115,24 +137,54 @@
               <th>N° Contrat</th>
               <th>Client</th>
               <th>Espace</th>
-              <th>Date Début</th>
-              <th>Date Fin</th>
+              <th>Période du bail</th>
+              <th>Statut Durée</th>
               <th>Tarif Mensuel</th>
+              <th>Statut Validation</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             @for (contrat of listeContrats(); track contrat.id) {
+              @let temporel = getStatutTemporel(contrat.date_debut, contrat.date_fin);
               <tr>
                 <td><strong>#{{ contrat.id }}</strong></td>
-                <td>{{ contrat.client_prenom || 'Client #' + contrat.client }}</td>
+                <td>{{ contrat.client_detail.user.first_name || 'Client #' + contrat.client }}</td>
                 <td><span class="badge-type-sm">Bureau {{ contrat.bureau_name || contrat.bureau }}</span></td>
-                <td>{{ contrat.date_debut | date:'dd/MM/yyyy' }}</td>
-                <td>{{ contrat.date_fin | date:'dd/MM/yyyy' }}</td>
-                <td><strong class="text-indigo">{{ contrat.montant | number }} BIF</strong></td>
+                <td>
+                  @if (contrat.date_debut) {
+                    Du {{ contrat.date_debut | date:'dd/MM/yyyy' }} au {{ contrat.date_fin | date:'dd/MM/yyyy' }}
+                  } @else {
+                    <span class="text-muted">Fixée à la validation</span>
+                  }
+                </td>
+                <td><span class="badge {{ temporel.css }}">{{ temporel.label }}</span></td>
+                <td><strong class="text-indigo">{{ contrat.montant | number }} FBU</strong></td>
+                <td>
+                  <span class="status-indicator" 
+                        [class.paid]="contrat.statut === 'VALIDE'" 
+                        [class.text-muted]="contrat.statut === 'EN_ATTENTE'">
+                    {{ contrat.statut === 'VALIDE' ? 'Validé' : (contrat.statut === 'REJETE' ? 'Rejeté' : 'En attente') }}
+                  </span>
+                </td>
+                <td>
+                  @if (contrat.statut === 'EN_ATTENTE') {
+                    <div style="display: flex; gap: 5px;">
+                      <button (click)="onValiderContrat(contrat.id)" class="btn-validate" style="padding: 4px 8px; font-size: 12px;">
+                        ✅ Accepter
+                      </button>
+                      <button (click)="onRejeterContrat(contrat.id)" class="btn-logout" style="padding: 4px 8px; font-size: 12px; background-color: #ef4444; margin: 0;">
+                        ❌ Rejeter
+                      </button>
+                    </div>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="6" class="text-muted" style="text-align: center; padding: 20px;">
+                <td colspan="8" class="text-muted" style="text-align: center; padding: 20px;">
                   Aucun contrat de location enregistré en base de données.
                 </td>
               </tr>
@@ -141,19 +193,90 @@
         </table>
       </section>
     }
-    
+
+    @if (ongletActif() === 'suivi-clients') {
+      <section class="admin-section">
+        <h2>Registre d'Occupation : Clients & Bureaux Loués</h2>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Espace Alloué</th>
+              <th>Date Début</th>
+              <th>Date Fin</th>
+              <th>Loyer</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (contrat of listeContrats(); track contrat.id) {
+              <tr>
+                <td><strong>{{ contrat.client_prenom || 'Client #' + contrat.client }}</strong></td>
+                <td><span style="color: #4f46e5; font-weight: 500;">Bureau {{ contrat.bureau_name }}</span></td>
+                <td>{{ contrat.date_debut | date:'dd MMMM yyyy' }}</td>
+                <td>{{ contrat.date_fin | date:'dd MMMM yyyy' }}</td>
+                <td>{{ contrat.montant | number }} FBU</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-muted" style="text-align: center; padding: 20px;">
+                  Aucune occupation de bureau active enregistrée.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (ongletActif() === 'suivi-workers') {
+      <section class="admin-section">
+        <h2>Suivi des Recettes Clôturées & Encaissées</h2>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID Paiement</th>
+              <th>Référence Contrat</th>
+              <th>Montant Encaissé</th>
+              <th>Mode de Règlement</th>
+              <th>État Système</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of listePaiements(); track p.id) {
+              @if (p.statut === 'PAID' || p.statut_paiement === 'PAID') {
+                <tr>
+                  <td>#{{ p.id }}</td>
+                  <td>Contrat #{{ p.contrat }}</td>
+                  <td><strong style="color: #10b981;">{{ p.montant | number }} FBU</strong></td>
+                  <td><span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 13px;">{{ p.mode }}</span></td>
+                  <td><span class="status-indicator paid">Validé & Payé</span></td>
+                </tr>
+              }
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-muted" style="text-align: center; padding: 20px;">
+                  Aucun paiement validé dans le journal historique.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
     @if (ongletActif() === 'paiements') {
       <section class="admin-section">
         <h2>Journal Général des Transactions</h2>
         <table class="admin-table">
           <thead>
-            <tr><th>Réf</th><th>Montant</th><th>Mode</th><th>Statut</th></tr>
+            <tr><th>Réf</th><th>Nom</th><th>Montant</th><th>Mode</th><th>Statut</th><th>Actions</th></tr>
           </thead>
           <tbody>
             @for (p of listePaiements(); track p.id) {
               <tr>
                 <td>#{{ p.id }}</td>
-                <td><strong>{{ p.montant | number }} BIF</strong></td>
+                <td>{{ p.client_detail.user.first_name }}</td>
+                <td><strong>{{ p.montant | number }} FBU</strong></td>
                 <td>{{ p.mode }}</td>
                 <td>
                   <span class="status-indicator" [class.paid]="p.statut_paiement === 'PAYE' || p.statut_paiement === 'PAID'">
@@ -161,7 +284,7 @@
                   </span>
                 </td>
                 <td>
-                  @if (p.statut !== 'PAID' && p.statut !== 'FAILED') {
+                  @if (p.statut !== 'PAID' && p.statut_paiement !== 'PAID' && p.statut !== 'FAILED') {
                     <button (click)="validerLePaiement(p.id)" class="btn-validate">
                       ✅ Valider
                     </button>

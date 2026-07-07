@@ -16,14 +16,16 @@ export class StaffDashboardComponent implements OnInit {
   bureauxStatut = signal<any[]>([]);
 
   ngOnInit(): void {
-    this.apiService.getBureauxDisponibles().subscribe({
+    // ✅ CORRIGÉ : on charge TOUS les bureaux, pas seulement les disponibles,
+    // sinon l'écran "Statut des Espaces (Temps Réel)" ne peut jamais montrer un bureau occupé
+    this.apiService.getBureaux().subscribe({
       next: (data) => this.bureauxStatut.set(data),
       error: (err) => console.error('Erreur bureaux staff', err)
     });
   }
 
   deconnexion(): void {
-    localStorage.removeItem('access_token');
+    localStorage.clear();
     this.router.navigate(['/login']);
   }
 }

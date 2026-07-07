@@ -1,8 +1,8 @@
+// api.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root'
@@ -11,185 +11,145 @@ export class ApiService {
   private apiUrl = 'http://127.0.0.1:8000/api';
   private http = inject(HttpClient);
 
-  private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('access_token');
-    return token 
-      ? new HttpHeaders({ 'Authorization': `Bearer ${token}` }) 
-      : new HttpHeaders();
-  }
+  // NOTE: Les en-têtes d'authentification Bearer sont injectés automatiquement
+  // par auth.interceptor.ts pour toutes les requêtes sécurisées.
+
+  // ==========================================
+  //  🔐 AUTHENTIFICATION & UTILISATEURS
+  // ==========================================
 
   login(username: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/token/`, { username, password });
   }
-  
-  registerClient(donneesClient: any): Observable<any> {
-    // L'endpoint correspond généralement à l'URL liée à ton ClientViewSet
-    return this.http.post<any>(`${this.apiUrl}/clients/`, donneesClient);
+
+  refreshToken(refresh: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/token/refresh/`, { refresh });
   }
 
-  /**
-   * Enregistre un nouveau bureau dans le backend Django (Réservé Admin/Staff)
-   */
-  creerBureau(donneesBureau: any): Observable<any> {
-    const headers = this.getAuthHeaders();
-    return this.http.post<any>(`${this.apiUrl}/bureaux/`, donneesBureau, { headers });
+  registerClient(donneesClient: FormData): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/clients/inscription/`, donneesClient);
   }
 
-  /**
-   * SOLUTION ALTERNATIVE : Décode le token JWT pour trouver l'ID de l'utilisateur
-   * et appelle directement l'endpoint individuel /clients/{id}/
-   */
+  // ✅ CORRIGÉ : appelle directement l'endpoint dédié /clients/mon-profil/
+  // au lieu de décoder le JWT et de chercher par un ID qui ne correspond pas
+  // forcément au profil (Client.id ≠ User.id).
   getMonProfil(): Observable<any> {
-    const token = localStorage.getItem('access_token');
-    
-    if (!token) {
-      return throwError(() => new Error('Aucun token d’accès trouvé'));
-    }
-
-    try {
-      const decoded: any = jwtDecode(token);
-      const userId = decoded.user_id || decoded.sub; 
-
-      if (!userId) {
-        return throwError(() => new Error('ID utilisateur introuvable dans le token'));
-      }
-
-      return this.getProfile(userId);
-
-    } catch (error) {
-      return throwError(() => new Error('Erreur lors du décodage du token JWT'));
-    }
+    return this.http.get<any>(`${this.apiUrl}/clients/mon-profil/`);
   }
 
-  /**
-   * Récupère le profil d'un client spécifique par son ID
-   */
+  // ==========================================
+  //  🏢 STRUCTURE, IMMEUBLES & BUREAUX
+  // ==========================================
+
   getBatiments(): Observable<any[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/batiments/`, { headers }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/batiments/`).pipe(
       map(response => response.results || response)
     );
   }
-  
-  getProfile(userId: number): Observable<any> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/clients/${userId}/`, { headers });
+
+  getNiveaux(): Observable<any[]> {
+    return this.http.get<any>(`${this.apiUrl}/niveaux/`).pipe(
+      map(response => response.results || response)
+    );
+  }
+
+  getTypesBureau(): Observable<any[]> {
+    return this.http.get<any>(`${this.apiUrl}/types-bureau/`).pipe(
+      map(response => response.results || response)
+    );
   }
 
   getBureaux(): Observable<any[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/bureaux/`, { headers }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/bureaux/`).pipe(
       map(response => response.results || response)
     );
   }
-
 
   getBureauxDisponibles(): Observable<any[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/bureaux/disponibles/`, { headers }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/bureaux/disponibles/`).pipe(
       map(response => response.results || response)
     );
   }
-  
+
+  creerBureau(donneesBureau: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/bureaux/`, donneesBureau);
+  }
+
+  // ==========================================
+  //  📅 RÉSERVATIONS (CLIENTS & MANAGERS)
+  // ==========================================
+
   getMesReservations(): Observable<any[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/reservations/`, { headers }).pipe(
-      map(response => response.results || response)
-    );
-  }
-
-  getContrats(): Observable<any[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/contrats/`, { headers }).pipe(
-      map(response => response.results || response)
-    );
-  }
-
-  getPaiements(): Observable<any[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/paiements/`, { headers }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/reservations/`).pipe(
       map(response => response.results || response)
     );
   }
 
   creerReservation(bureauId: number, dateDebut: string, dateFin: string): Observable<any> {
-    const headers = this.getAuthHeaders();
-    const body = {
-      bureau: bureauId,
-      date_debut: dateDebut, 
-      date_fin: dateFin
-    };
-    return this.http.post<any>(`${this.apiUrl}/reservations/`, body, { headers });
-  }
-  /**
- * Crée un contrat direct/immédiat pour un bureau spécifique
- */
- creerContratDirect(bureauId: number, dateDebut: string, dateFin: string): Observable<any> {
-  const payload = {
-    bureau: bureauId,
-    date_debut: dateDebut,
-    date_fin: dateFin
-  };
-  
-  // Ajustez l'URL '/api/contrats/creer-direct/' selon votre route Django réelle
-   return this.http.post(`${this.apiUrl}/contrats/`, payload);
- }
-  
-  /* méthode HTTP POST pour cibler l'endpoint */
-  validerPaiement(paiementId: number): Observable<any> {
-    const headers = this.getAuthHeaders();
-    return this.http.post<any>(`${this.apiUrl}/paiements/${paiementId}/valider-paiement/`, {}, { headers });
-  }
-
-  // ==========================================
-  // NOUVELLES MÉTHODES AJOUTÉES
-  // ==========================================
-
-  /**
-   * AJOUT 1 : Créer une location directe (immédiate) sans passer par une réservation
-   */
-  creerLocationDirecte(bureauId: number, dateDebut: string, dateFin: string): Observable<any> {
-    const headers = this.getAuthHeaders();
     const body = {
       bureau: bureauId,
       date_debut: dateDebut,
       date_fin: dateFin
     };
-    // Adapte l'URL selon ton routage Django (ex: /locations/ ou /locations/louer-immédiat/)
-    return this.http.post<any>(`${this.apiUrl}/locations/`, body, { headers });
+    return this.http.post<any>(`${this.apiUrl}/reservations/`, body);
   }
 
-  /**
-   * AJOUT 2 : Convertir une réservation existante en un contrat de location actif
-   */
-  convertirReservationEnLocation(reservationId: number): Observable<any> {
-    const headers = this.getAuthHeaders();
-    // Utilise une action personnalisée sur le ViewSet de tes réservations
-    return this.http.post<any>(`${this.apiUrl}/reservations/${reservationId}/convertir-location/`, {}, { headers });
+  annulerReservation(reservationId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/reservations/${reservationId}/annuler/`, {});
   }
-  /**
-   * Convertit une réservation existante en un contrat actif
-   */
+
   convertirReservationEnContrat(reservationId: number): Observable<any> {
-    const headers = this.getAuthHeaders();
-    // Endpoint ajusté vers le endpoint personnalisé de vos réservations ou contrats
-    return this.http.post<any>(`${this.apiUrl}/reservations/${reservationId}/convertir-contrat/`, {}, { headers });
+    return this.http.post<any>(`${this.apiUrl}/reservations/${reservationId}/convertir-contrat/`, {});
   }
 
-  /**
-   * AJOUT 3 : Soumettre une demande d'enregistrement de paiement (Statut initial En Attente)
-   */
-  /*soumettreDemandePaiement(donneesPaiement: { contrat: string; mode: string; mois_paye: number }): Observable<any> {
-    const headers = this.getAuthHeaders();
-    const body = {
-      contrat: Number(donneesPaiement.contrat),
-      mode_paiement: donneesPaiement.mode,
-      mois_paye: donneesPaiement.mois_paye,
-      annee_paye: new Date().getFullYear() // Envoie automatiquement l'année en cours
+  // ==========================================
+  //  💼 CONTRATS DE LOCATION & BAILS
+  // ==========================================
+
+  getContrats(): Observable<any[]> {
+    return this.http.get<any>(`${this.apiUrl}/contrats/`).pipe(
+      map(response => response.results || response)
+    );
+  }
+
+  creerContratDirect(bureauId: number, dateDebut: string, dateFin: string): Observable<any> {
+    const payload = {
+      bureau: bureauId,
+      date_debut: dateDebut,
+      date_fin: dateFin
     };
-    return this.http.post<any>(`${this.apiUrl}/paiements/`, body, { headers });
-  }*/
-  soumettreDemandePaiement(data: { contrat: number | null; mode: string; mois_paye: number }) {
-    return this.http.post(`${this.apiUrl}/paiements/`, data); // Ou votre route correspondante
+    return this.http.post<any>(`${this.apiUrl}/contrats/`, payload);
+  }
+  demanderContratDirect(bureauId: number, dateFin: string): Observable<any> {
+    const payload = { bureau: bureauId, date_fin: dateFin };
+    return this.http.post<any>(`${this.apiUrl}/contrats/`, payload);
+  }
+  
+  validerContrat(contratId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/contrats/${contratId}/valider-contrat/`, {});
+  }
+  
+  rejeterContrat(contratId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/contrats/${contratId}/rejeter-contrat/`, {});
+  }
+  
+  // ==========================================
+  //  💳 JOURNAL DES FLUX ET PAIEMENTS
+  // ==========================================
+
+  getPaiements(): Observable<any[]> {
+    return this.http.get<any>(`${this.apiUrl}/paiements/`).pipe(
+      map(response => response.results || response)
+    );
+  }
+
+  soumettreDemandePaiement(data: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/paiements/`, data);
+  }
+
+  // ✅ CORRIGÉ : l'URL correspond maintenant à l'action réellement exposée
+  // par le backend (valider-paiement), en POST.
+  validerPaiement(paiementId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/paiements/${paiementId}/valider-paiement/`, {});
   }
 }

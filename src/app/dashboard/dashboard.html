@@ -1,24 +1,31 @@
 @if (client()) {
   <div class="dashboard-container">
       
+    <!-- ASIDE : CARTE PROFIL -->
+    <!-- ASIDE : CARTE PROFIL -->
+    <!-- ASIDE : CARTE PROFIL -->
     <aside class="profile-card">
-      <div class="card-header">
-        <div class="icon-wrapper bg-indigo-light text-indigo">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-md">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-          </svg>
+      <div class="card-header" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; margin-bottom: 20px;">
+        
+        <!-- PHOTO DE PROFIL DYNAMIQUE -->
+        <div class="profile-photo-wrapper" style="position: relative; width: 90px; height: 90px; border-radius: 50%; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 3px solid #4f46e5;">
+          @if (client()?.photo_profil) {
+            <img [src]="client()?.photo_profil" alt="Photo de profil" style="width: 100%; height: 100%; object-fit: cover;">
+          } @else {
+            <img [src]="'https://api.dicebear.com/7.x/initials/svg?seed=' + (client()?.user_detail?.first_name || 'wonder')" alt="Avatar par défaut" style="width: 100%; height: 100%; object-fit: cover; background-color: #f3f4f6;">
+          }
         </div>
+
         <div>
-          <h2 class="section-title">Mon Profil</h2>
-          <p class="section-subtitle">Vos informations personnelles</p>
+          <h2 class="section-title" style="font-size: 1.25rem; font-weight: 700; color: #1f2937; margin: 0;">Mon Profil</h2>
+          <p class="section-subtitle" style="margin: 0; font-size: 0.85rem; color: #6b7280;">Vos informations personnelles</p>
         </div>
       </div>
       
       <div class="profile-details">
-
         <div class="detail-item">
           <span class="detail-label">Nom</span> 
-          <span class="detail-value text-break">{{ client()?.user_detail?.first_name ?? '-----' }}</span>
+          <span class="detail-value text-break">{{ client()?.user_detail?.first_name }} {{ client()?.user_detail?.last_name }}</span>
         </div>
 
         <div class="detail-item">
@@ -37,12 +44,12 @@
         </div>
 
         <div class="detail-item">
-          <span class="detail-label">Date de naissance</span> 
-          <span class="detail-value">{{ client()?.date_naissance ? (client().date_naissance | date:'dd MMMM yyyy') : 'Non renseignée' }}</span>
+          <span class="detail-label">Profession</span> 
+          <span class="detail-value">{{ client()?.profession || 'Non renseignée' }}</span>
         </div>
 
         <div class="logout-wrapper" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #f3f4f6;">
-          <button class="btn-logout" (click)="onLogout()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #ef4444; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+          <button type="button" class="btn-logout" (click)="onLogout()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #ef4444; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 18px; height: 18px;">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
             </svg>
@@ -51,12 +58,10 @@
         </div>
       </div>
     </aside>
-  
+    
     <main class="main-content">
       
-      
-      
-      
+      <!-- SECTION : LISTE COMPLETE DES BUREAUX -->
       <section class="content-section">
         <div class="section-header-inline">
           <div class="icon-wrapper bg-slate-light text-slate">
@@ -64,10 +69,10 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 16.5h1.5M13.5 16.5H15m-7.5 4.5h9" />
             </svg>
           </div>
-          <h2 class="section-title-lg">Listes des Bureaux</h2>
+          <h2 class="section-title-lg">Catalogue des Bureaux</h2>
         </div>
       
-        @if (bureaux().length > 0) {
+        @if (bureaux() && bureaux().length > 0) {
           <div class="bureau-list-container">
             @for (bureau of bureaux(); track bureau.id) {
               <div class="bureau-list-item shadow-box" [class.is-expanded]="bureauSelectionneId() === bureau.id">
@@ -75,20 +80,23 @@
                 <div class="bureau-item-summary" (click)="toggleDetails(bureau.id)">
                   <div class="bureau-item-info">
                     <div class="title-block">
-                      <h3 class="bureau-name-link" style="margin-bottom: 4px;">{{ bureau?.batiment_detail?.nom }}</h3>
+                      <h3 class="bureau-name-link" style="margin-bottom: 4px;">{{ bureau?.batiment_detail?.nom || 'Bâtiment' }}</h3>
                       <h3 class="bureau-name-link">Bureau {{ bureau?.numero }}</h3>
                       <span class="badge-type">{{ bureau?.type_detail?.nom || 'Standard' }}</span>
+                      <span class="badge-status" [style.background-color]="bureau.statut === 'DISPONIBLE' ? '#dcfce7' : '#fee2e2'" [style.color]="bureau.statut === 'DISPONIBLE' ? '#15803d' : '#b91c1c'" style="font-size: 0.6rem; padding: 2px 6px;">
+                        {{ bureau.statut }}
+                      </span>
                     </div>
                     <p class="bureau-mini-specs">
                       Étage : <span class="text-dark">{{ bureau?.niveau_detail?.nom || 'N/A' }}</span> • 
                       Superficie : <span class="text-dark">{{ bureau?.espace }}m²</span> •
-                      Prix unitaire : <span class="text-dark">{{ bureau?.unite }} Fbu</span>
+                      Unité : <span class="text-dark">{{ bureau?.unite | number }} FBU</span>
                     </p>
                   </div>
                   
                   <div class="bureau-item-actions">
                     <div class="price-tag">
-                      {{ bureau?.prix | number }} <span class="currency-sm">BIF</span>
+                      {{ bureau?.prix | number }} <span class="currency-sm">CFA</span>
                     </div>
                     <button class="btn-toggle" [class.rotated]="bureauSelectionneId() === bureau.id">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="icon-xs">
@@ -102,16 +110,14 @@
                   <div class="bureau-item-details">
                     <form class="booking-form-inline">
                       <div class="form-grid-inline">
-                        
                         <div class="input-group">
-                          <label class="input-label">Date de début</label>
+                          <label class="input-label">Date de début (réservation uniquement)</label>
                           <input type="date" 
                                  [value]="formReservation()[bureau.id]?.dateDebut || ''"
                                  (input)="updateDate(bureau.id, 'dateDebut', $any($event.target).value)"
-                                 required 
                                  class="custom-input">
                         </div>
-
+                      
                         <div class="input-group">
                           <label class="input-label">Date de fin</label>
                           <input type="date" 
@@ -120,16 +126,24 @@
                                  required 
                                  class="custom-input">
                         </div>
-
+                      
                         <div class="button-group-inline" style="display: flex; gap: 10px;">
-                          <button type="button" (click)="onReserver(bureau.id)" class="btn-primary-inline">
+                          <button type="button" (click)="onReserver(bureau.id)" class="btn-primary-inline" [disabled]="bureau.statut === 'OCCUPE'">
                             Réserver l'espace
                           </button>
-                          <button type="button" (click)="onLouerDirectement(bureau.id)" class="btn-success-inline" style="background-color: #10b981; color: white;">
-                            ⚡ Louer maintenant
+                          <button type="button" (click)="onLouerDirectement(bureau.id)" class="btn-success-inline" style="background-color: #10b981; color: white; border: none; border-radius: 0.5rem; padding: 0.6rem 1rem; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; cursor: pointer;" [disabled]="bureau.statut === 'OCCUPE'">
+                            ⚡ Demander la location directe
                           </button>
                         </div>
                       </div>
+                      <p style="font-size: 0.7rem; color: #6b7280; margin-top: 6px;">
+                        ℹ️ Pour "Demander la location directe", seule la <strong>date de fin</strong> est nécessaire. La date de début sera fixée automatiquement le jour de la validation du contrat par un responsable.
+                      </p>                      
+                      @if (bureau.date_disponibilite_prevue) {
+                        <p style="font-size: 0.75rem; color: #b45309; margin-top: 8px; font-style: italic;">
+                          ℹ️ Ce bureau est actuellement occupé. Libération prévue le : {{ bureau.date_disponibilite_prevue | date:'dd/MM/yyyy' }}
+                        </p>
+                      }
                     </form>
                   </div>
                 }
@@ -138,109 +152,17 @@
           </div>
         } @else {
           <div class="empty-state">
-            <p>Aucun bureaux mis a jour actuellement.</p>
+            <p>Aucun bureau disponible dans le catalogue.</p>
           </div>
         }
       </section>
 
-
-
-
-
-
-
-
+      <!-- SECTION : MES RESERVATIONS -->
       <section class="content-section">
         <div class="section-header-inline">
           <div class="icon-wrapper bg-slate-light text-slate">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-md">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 16.5h1.5M13.5 16.5H15m-7.5 4.5h9" />
-            </svg>
-          </div>
-          <h2 class="section-title-lg">Espaces disponibles à la location et réservation</h2>
-        </div>
-      
-        @if (bureauxDisponibles().length > 0) {
-          <div class="bureau-list-container">
-            @for (bureau of bureauxDisponibles(); track bureau.id) {
-              <div class="bureau-list-item shadow-box" [class.is-expanded]="bureauSelectionneId() === bureau.id">
-                
-                <div class="bureau-item-summary" (click)="toggleDetails(bureau.id)">
-                  <div class="bureau-item-info">
-                    <div class="title-block">
-                      <h3 class="bureau-name-link" style="margin-bottom: 4px;">{{ bureau?.batiment_detail?.nom }}</h3>
-                      <h3 class="bureau-name-link">Bureau {{ bureau?.numero }}</h3>
-                      <span class="badge-type">{{ bureau?.type_detail?.nom || 'Standard' }}</span>
-                    </div>
-                    <p class="bureau-mini-specs">
-                      Étage : <span class="text-dark">{{ bureau?.niveau_detail?.nom || 'N/A' }}</span> • 
-                      Superficie : <span class="text-dark">{{ bureau?.espace }}m²</span> •
-                      Prix unitaire : <span class="text-dark">{{ bureau?.unite }} Fbu</span>
-                    </p>
-                  </div>
-                  
-                  <div class="bureau-item-actions">
-                    <div class="price-tag">
-                      {{ bureau?.prix | number }} <span class="currency-sm">BIF</span>
-                    </div>
-                    <button class="btn-toggle" [class.rotated]="bureauSelectionneId() === bureau.id">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="icon-xs">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                
-                @if (bureauSelectionneId() === bureau.id) {
-                  <div class="bureau-item-details">
-                    <form class="booking-form-inline">
-                      <div class="form-grid-inline">
-                        
-                        <div class="input-group">
-                          <label class="input-label">Date de début</label>
-                          <input type="date" 
-                                 [value]="formReservation()[bureau.id]?.dateDebut || ''"
-                                 (input)="updateDate(bureau.id, 'dateDebut', $any($event.target).value)"
-                                 required 
-                                 class="custom-input">
-                        </div>
-
-                        <div class="input-group">
-                          <label class="input-label">Date de fin</label>
-                          <input type="date" 
-                                 [value]="formReservation()[bureau.id]?.dateFin || ''"
-                                 (input)="updateDate(bureau.id, 'dateFin', $any($event.target).value)"
-                                 required 
-                                 class="custom-input">
-                        </div>
-
-                        <div class="button-group-inline" style="display: flex; gap: 10px;">
-                          <button type="button" (click)="onReserver(bureau.id)" class="btn-primary-inline">
-                            Réserver l'espace
-                          </button>
-                          <button type="button" (click)="onLouerDirectement(bureau.id)" class="btn-success-inline" style="background-color: #10b981; color: white;">
-                            ⚡ Louer maintenant
-                          </button>
-                        </div>
-                      </div>
-                    </form>
-                  </div>
-                }
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="empty-state">
-            <p>Aucun espace de bureau disponible actuellement.</p>
-          </div>
-        }
-      </section>
-  
-      <section class="content-section">
-        <div class="section-header-inline">
-          <div class="icon-wrapper bg-slate-light text-slate">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-md">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
             </svg>
           </div>
           <h2 class="section-title-lg">Mes Réservations En Cours</h2>
@@ -250,11 +172,11 @@
           <div class="reservation-grid">
             @for (res of reservations(); track res.id) {
               <div class="reservation-card" [class.active]="selectedReservation()?.id === res.id">
-                <div class="accent-bar"></div>
+                <div class="accent-bar" [style.background-color]="res.is_active ? '#4f46e5' : '#94a3b8'"></div>
                 
-                <span class="res-bureau-name">Réservation #{{ $index + 1 }}</span>
-                
-                <span class="badge-type-sm">Bureau {{ res?.bureau_name || 'Bureau ' + res?.bureau }}</span>
+                <span class="res-bureau-name">Réservation #{{ res.id }}</span>
+                <span class="badge-type-sm">Bureau {{ res?.bureau_detail?.numero || res?.bureau }}</span>
+                <span style="font-size: 0.75rem; color: #64748b; font-weight: 500;">{{ res?.bureau_detail?.batiment }}</span>
                 
                 <div class="res-dates">
                   <div class="date-row">
@@ -270,10 +192,10 @@
                 <div class="card-actions" style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
                   @if (res.is_active) {
                     <button class="btn-success-sm" (click)="onLouerDepuisReservation(res)" style="background-color: #10b981; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">
-                      🔑 Louer maintenant
+                      🔑 Signer Contrat
                     </button>
                   }
-                  <button class="btn-detail-sm" (click)="toggleReservationDetails(res, $index + 1)">
+                  <button class="btn-detail-sm" (click)="toggleReservationDetails(res, res.id)">
                     {{ selectedReservation()?.id === res.id ? 'Masquer' : 'Voir détails' }}
                   </button>
                 </div>
@@ -284,26 +206,24 @@
           @if (selectedReservation(); as selected) {
             <div class="detail-panel">
               <div class="detail-header">
-                <h3>Détails complets de la réservation #{{ selected.indexAffichage }}</h3>
+                <h3>Détails complets de la réservation #{{ selected.id }}</h3>
                 <button class="close-btn" (click)="selectedReservation.set(null)">&times;</button>
               </div>
               <div class="detail-body">
-                <p><strong>Montant Calculé :</strong> {{ selected.montant_calcule }} FBU</p>
-                <p><strong>Statut :</strong> {{ selected.is_active ? 'Actif' : 'Inactif' }}</p>
-                <p><strong>Date de Création :</strong> {{ selected.created_at | date:'dd/MM/yyyy à HH:mm' }}</p>
+                <p><strong>Prix du Bureau :</strong> {{ selected.bureau_detail?.prix | number }} FBU / période</p>
+                <p><strong>Statut :</strong> {{ selected.is_active ? 'Actif' : 'Archivé / Inactif' }}</p>
+                <p><strong>Date de Demande :</strong> {{ selected.created_at | date:'dd/MM/yyyy à HH:mm' }}</p>
                 
-                <hr>
+                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #e5e7eb;">
                 
                 <h4>Informations Client</h4>
-                <p><strong>Nom Complet :</strong> {{ selected.client_detail?.user?.first_name }} {{ selected.client_detail?.user?.last_name }}</p>
-                <p><strong>Email :</strong> {{ selected.client_detail?.user?.email }}</p>
+                <p><strong>Identité :</strong> {{ selected.client_detail?.user?.first_name }} {{ selected.client_detail?.user?.last_name }}</p>
                 <p><strong>Téléphone :</strong> {{ selected.client_detail?.telephone }}</p>
-                <p><strong>Adresse :</strong> {{ selected.client_detail?.addresse }}</p>
 
                 @if (selected.is_active) {
                   <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd;">
                     <button class="btn-primary-inline" (click)="onLouerDepuisReservation(selected)" style="width: 100%; background-color: #0284c7;">
-                      Convertir cette réservation en Location Immédiate
+                      Convertir cette réservation en Contrat Officiel
                     </button>
                   </div>
                 }
@@ -313,11 +233,12 @@
         
         } @else {
           <div class="empty-state-left">
-            <p>Aucune réservation enregistrée.</p>
+            <p>Aucune réservation enregistrée à votre nom.</p>
           </div>
         }
       </section>
 
+      <!-- SECTION : MES CONTRATS -->
       <section class="content-section">
         <div class="section-header-inline">
           <div class="icon-wrapper bg-indigo-light text-indigo">
@@ -328,39 +249,77 @@
           <h2 class="section-title-lg">Mes Contrats de Location</h2>
         </div>
 
-        @if (contrats() && contrats().length > 0) {
-          <div class="reservation-grid">
-            @for (contrat of contrats(); track contrat.id) {
-              <div class="reservation-card" style="border-left: 4px solid #4f46e5;">
-                <span class="res-bureau-name">Contrat N° {{ contrat.id }}</span>
-                <span class="badge-type-sm" style="background-color: #e0e7ff; color: #4338ca;">
-                  Bureau {{ contrat.bureau_name || contrat.bureau }}
-                </span>
-                
-                <div class="res-dates" style="margin-top: 10px;">
-                  <div class="date-row">
-                    <span class="date-label">Début:</span>
-                    <span class="date-value">{{ contrat?.date_debut | date:'dd/MM/yyyy' }}</span>
+        
+          @if (contrats() && contrats().length > 0) {
+            <div class="reservation-grid">
+              @for (contrat of contrats(); track contrat.id) {
+                <div class="reservation-card" 
+                     [style.border-left]="contrat.statut === 'VALIDE' ? '4px solid #10b981' : (contrat.statut === 'REJETE' ? '4px solid #ef4444' : '4px solid #f59e0b')">
+                  
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="res-bureau-name">Contrat Cadre N° {{ contrat.id }}</span>
+                    <span class="badge-status"
+                          [style.background-color]="contrat.statut === 'VALIDE' ? '#dcfce7' : (contrat.statut === 'REJETE' ? '#fee2e2' : '#fef3c7')"
+                          [style.color]="contrat.statut === 'VALIDE' ? '#15803d' : (contrat.statut === 'REJETE' ? '#b91c1c' : '#b45309')"
+                          style="font-size: 0.65rem; padding: 3px 8px; border-radius: 10px; font-weight: 600;">
+                      @switch (contrat.statut) {
+                        @case ('VALIDE') { ✅ Validé }
+                        @case ('EN_ATTENTE') { ⏳ En attente de validation }
+                        @case ('REJETE') { ❌ Rejeté }
+                        @default { {{ contrat.statut }} }
+                      }
+                    </span>
                   </div>
-                  <div class="date-row">
-                    <span class="date-label">Fin:</span>
-                    <span class="date-value">{{ contrat?.date_fin | date:'dd/MM/yyyy' }}</span>
+          
+                  <span class="badge-type-sm" style="background-color: #dcfce7; color: #15803d; margin-top: 6px;">
+                    Bureau ID: {{ contrat.bureau || 'Via Réservation' }}
+                  </span>
+                  
+                  <div class="res-dates" style="margin-top: 10px;">
+                    <div class="date-row">
+                      <span class="date-label">Date Début:</span>
+                      <span class="date-value">{{ contrat?.date_debut ? (contrat.date_debut | date:'dd/MM/yyyy') : 'À la validation' }}</span>
+                    </div>
+                    <div class="date-row">
+                      <span class="date-label">Date Fin:</span>
+                      <span class="date-value">{{ contrat?.date_fin | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                    <div class="date-row" style="margin-top: 5px; font-weight: bold;">
+                      <span class="date-label">Loyer Global :</span>
+                      <span class="date-value text-indigo">{{ contrat?.montant | number }} FBU</span>
+                    </div>
                   </div>
-                  <div class="date-row" style="margin-top: 5px; font-weight: bold;">
-                    <span class="date-label">Loyer :</span>
-                    <span class="date-value text-indigo">{{ contrat?.montant | number }} BIF</span>
-                  </div>
+          
+                  @if (contrat.document_contrat_signe) {
+                    <a [href]="contrat.document_contrat_signe" target="_blank" style="font-size: 0.75rem; color: #4f46e5; text-decoration: underline; margin-top: 5px;">
+                      Télécharger le document signé PDF
+                    </a>
+                  }
+          
+                  <!-- BOUTONS DE VALIDATION : uniquement visibles pour ADMIN/TRAVAILLEUR/MANAGER, et seulement si en attente -->
+                  @if (estStaff() && contrat.statut === 'EN_ATTENTE') {
+                    <div style="margin-top: 12px; display: flex; gap: 8px;">
+                      <button type="button" (click)="onValiderContrat(contrat.id)"
+                              style="flex: 1; background-color: #10b981; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
+                        ✔ Valider
+                      </button>
+                      <button type="button" (click)="onRejeterContrat(contrat.id)"
+                              style="flex: 1; background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
+                        ✘ Rejeter
+                      </button>
+                    </div>
+                  }
                 </div>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="empty-state-left">
-            <p>Aucun contrat de location actif trouvé.</p>
-          </div>
-        }
+              }
+            </div>
+          } @else {
+            <div class="empty-state-left">
+              <p>Aucun contrat de location actif trouvé.</p>
+            </div>
+          }
       </section>
 
+      <!-- SECTION : FORMULAIRE DE PAIEMENT -->
       <section class="content-section">
         <div class="section-header-inline">
           <div class="icon-wrapper bg-indigo-light text-indigo">
@@ -376,11 +335,11 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
               
               <div class="input-group">
-                <label class="input-label">Contrat ou Location concerné(e)</label>
-                <select [(ngModel)]="formPaiement().contrat" name="contrat" class="custom-input" required>
-                  <option value="" disabled selected>Choisir un contrat</option>
+                <label class="input-label">Contrat Lié</label>
+                <select [(ngModel)]="formPaiement().contrat" name="contrat" class="custom-input" required style="height: 42px;">
+                  <option value="" disabled selected>Choisir un contrat cadre</option>
                   @for (contrat of contrats(); track contrat.id) {
-                    <option [value]="contrat.id">Contrat N° {{ contrat.id }}</option>
+                    <option [value]="contrat.id">Contrat N° {{ contrat.id }} (Montant: {{ contrat.montant }} FBU)</option>
                   }
                 </select>
               </div>
@@ -395,18 +354,24 @@
               </div>
 
               <div class="input-group">
-                <label class="input-label">Mois de règlement</label>
-                <input type="number" min="1" max="12" placeholder="Mois (1-12)" [(ngModel)]="formPaiement().mois_paye" name="mois_paye" class="custom-input">
+                <label class="input-label">Montant versé (FBU)</label>
+                <input type="number" step="0.01" placeholder="Ex: 50000" [(ngModel)]="formPaiement().montant" name="montant" class="custom-input" required style="height: 42px;">
+              </div>
+
+              <div class="input-group">
+                <label class="input-label">Mois à payer (1-12)</label>
+                <input type="number" min="1" max="12" placeholder="Ex: 6 pour Juin" [(ngModel)]="formPaiement().mois_paye" name="mois_paye" class="custom-input" required style="height: 42px;">
               </div>
             </div>
 
             <button type="submit" class="btn-primary-inline" style="background-color: #4f46e5; width: 100%;">
-              Envoyer la demande d'encaissement (Statut : En attente validation Admin)
+              Envoyer l'attestation d'encaissement (Statut : PENDING_ADMIN)
             </button>
           </form>
         </div>
       </section>
 
+      <!-- SECTION : HISTORIQUE DES PAIEMENTS -->
       <section class="content-section">
         <div class="section-header-inline">
           <div class="icon-wrapper bg-slate-light text-slate">
@@ -414,53 +379,40 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
             </svg>
           </div>
-          <h2 class="section-title-lg">Suivi de mes Paiements</h2>
+          <h2 class="section-title-lg">Suivi de mes Paiements & Reçus</h2>
         </div>
   
-        @if (paiements().length > 0) {
+        @if (paiements() && paiements().length > 0) {
           <div class="payment-list">
-            @for (paiement of paiements(); track $index) {
+            @for (paiement of paiements(); track paiement.id) {
               <div class="payment-row">
                 <div class="payment-left-block">
                   <div class="payment-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.854-1.107-2.33 0-3.187.552-.427 1.278-.647 2.003-.647.724 0 1.449.22 2.003.647m-4.674 11.391L12 18.75m0-13.5L12.562 6M12 4.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12" />
                     </svg>
                   </div>
                   <div>
-                    <p class="payment-subject">Paiement Bureau #{{ paiement?.bureau }}</p>
-                    
-                    @if (paiement?.mois_paye) {
-                      <p class="payment-period" style="font-size: 0.85rem; color: #4b5563; margin: 2px 0;">
-                        Période : Mois {{ paiement.mois_paye }}
-                      </p>
-                    }
-
-                    <p class="payment-meta">{{ paiement?.date_paiement | date:'dd MMM yyyy' }} • Via {{ paiement?.mode_paiement || 'Système' }}</p>
-                    
-                    @if (paiement?.validated_by_name) {
-                      <p style="font-size: 0.75rem; color: #059669; font-weight: 500;">
-                        Validé par : {{ paiement.validated_by_name }} (ID: {{ paiement.validated_by_id }})
-                      </p>
-                    }
+                    <p class="payment-subject">Paiement Reçu — Contrat Cadre N° {{ paiement.contrat }}</p>
+                    <p class="payment-period" style="font-size: 0.85rem; color: #4b5563; margin: 2px 0;">
+                      Période comptable : Mois {{ paiement.mois_paye }} / {{ paiement.annee_paye }}
+                    </p>
+                    <p class="payment-meta">{{ paiement?.date | date:'dd MMM yyyy' }} • Mode : {{ paiement?.mode }}</p>
                   </div>
                 </div>
                 <div class="payment-right-block">
-                  <p class="payment-amount">{{ paiement?.montant | number }} BIF</p>
+                  <p class="payment-amount">{{ paiement?.montant | number }} FBU</p>
                   <span class="badge-status"
-                        [class.status-paid]="paiement?.statut_paiement === 'PAYE' || paiement?.statut_paiement === 'PAID'"
-                        [class.status-pending]="paiement?.statut_paiement === 'EN_ATTENTE' || paiement?.statut_paiement === 'PENDING' || paiement?.statut_paiement === 'PENDING_ADMIN'"
-                        [class.status-failed]="paiement?.statut_paiement === 'ECHOUE' || paiement?.statut_paiement === 'FAILED'">
+                        [class.status-paid]="paiement?.statut === 'PAID'"
+                        [class.status-pending]="paiement?.statut === 'PENDING' || paiement?.statut === 'PENDING_ADMIN'"
+                        [class.status-failed]="paiement?.statut === 'FAILED'">
                     
-                    @switch (paiement?.statut_paiement) {
-                      @case ('PAYE') { Payé }
-                      @case ('PAID') { Payé }
-                      @case ('EN_ATTENTE') { En attente }
+                    @switch (paiement?.statut) {
+                      @case ('PAID') { Validé / Payé }
                       @case ('PENDING') { En attente }
                       @case ('PENDING_ADMIN') { Vérification Admin }
-                      @case ('ECHOUE') { Échoué }
-                      @case ('FAILED') { Échoué }
-                      @default { {{ paiement?.statut_paiement }} }
+                      @case ('FAILED') { Échoué / Rejeté }
+                      @default { {{ paiement?.statut }} }
                     }
                   </span>
                 </div>
@@ -469,7 +421,7 @@
           </div>
         } @else {
           <div class="empty-state-left">
-            <p>Aucune transaction enregistrée.</p>
+            <p>Aucune transaction financière enregistrée sur votre compte.</p>
           </div>
         }
       </section>
@@ -477,7 +429,7 @@
     </main>
   </div>
 } @else {
-  <div class="loading-wrapper">
+  <div class="loading-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
     <div class="spinner"></div>
     <p>Connexion à l'API de gestion en cours...</p>
   </div>

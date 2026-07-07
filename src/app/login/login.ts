@@ -1,14 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
-import { Router, RouterModule } from '@angular/router'; // 🟢 1. Ajoute RouterModule ici
-import { ApiService } from '../services/api';
-import { jwtDecode } from 'jwt-decode';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { ApiService } from '../services/api';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrls: ['./login.css']
 })
@@ -18,47 +17,33 @@ export class LoginComponent {
 
   username = '';
   password = '';
+  chargementEnCours = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
 
   onLogin(): void {
+    if (!this.username || !this.password) {
+      this.errorMessage.set('Veuillez renseigner votre identifiant et votre mot de passe.');
+      return;
+    }
+
+    this.chargementEnCours.set(true);
+    this.errorMessage.set(null);
+
     this.apiService.login(this.username, this.password).subscribe({
-      next: (tokens: any) => {
-        // 1. Stocker le token
-        localStorage.setItem('access_token', tokens.access);
-
-        try {
-          // 2. Décoder le token pour obtenir le rôle
-          const decoded: any = jwtDecode(tokens.access);
-          const role = decoded.role; // Assure-toi que ton backend envoie bien la clé 'role'
-
-          // 3. Redirection automatique selon le rôle
-          this.redirigerSelonRole(role);
-
-        } catch (error) {
-          this.errorMessage.set("Erreur lors de la lecture des droits utilisateur.");
-        }
+      next: (response: { access: string; refresh: string }) => {
+        localStorage.setItem('access_token', response.access);
+        localStorage.setItem('refresh_token', response.refresh);
+        this.chargementEnCours.set(false);
+        this.router.navigate(['/dashboard']);
       },
-      error: (err) => {
-        this.errorMessage.set("Identifiants incorrects ou serveur indisponible.");
+      error: (err: any) => {
+        this.chargementEnCours.set(false);
+        if (err.status === 401) {
+          this.errorMessage.set("Nom d'utilisateur ou mot de passe incorrect.");
+        } else {
+          this.errorMessage.set('Erreur de connexion au serveur backend.');
+        }
       }
     });
-  }
-
-  private redirigerSelonRole(role: string): void {
-    switch (role) {
-      case 'ADMIN':
-        this.router.navigate(['/admin-dashboard']);
-        break;
-      case 'MANAGER':
-        this.router.navigate(['/manager-dashboard']);
-        break;
-      case 'TRAVAILLEUR':
-        this.router.navigate(['/staff-dashboard']);
-        break;
-      case 'CLIENT':
-      default:
-        this.router.navigate(['/dashboard']); // Ton tableau de bord client actuel
-        break;
-    }
   }
 }

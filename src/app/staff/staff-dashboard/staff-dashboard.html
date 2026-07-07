@@ -12,13 +12,25 @@
       <h2>Statut des Espaces (Temps Réel)</h2>
       <div class="kpi-grid">
         @for (bureau of bureauxStatut(); track bureau.id) {
-          <div class="kpi-card" style="border-left: 5px solid #10b981;">
+          <div class="kpi-card" [style.border-left]="bureau.statut === 'DISPONIBLE' ? '5px solid #10b981' : '5px solid #ef4444'">
             <span class="kpi-value">Bureau {{ bureau.numero }}</span>
             <span class="kpi-title">Étage : {{ bureau?.niveau_detail?.nom || 'N/A' }}</span>
-            <span class="badge" style="background-color: #d1fae5; color: #065f46; width: fit-content; padding: 4px 8px; border-radius: 4px; margin-top: 10px;">
-              Prêt / Disponible
-            </span>
+            <!-- ✅ CORRIGÉ : badge dynamique reflétant le vrai statut, plus de texte codé en dur -->
+            @if (bureau.statut === 'DISPONIBLE') {
+              <span class="badge" style="background-color: #d1fae5; color: #065f46; width: fit-content; padding: 4px 8px; border-radius: 4px; margin-top: 10px;">
+                Prêt / Disponible
+              </span>
+            } @else {
+              <span class="badge" style="background-color: #fee2e2; color: #b91c1c; width: fit-content; padding: 4px 8px; border-radius: 4px; margin-top: 10px;">
+                Occupé
+                @if (bureau.date_disponibilite_prevue) {
+                  <span style="font-weight: 400;"> — libre le {{ bureau.date_disponibilite_prevue | date:'dd/MM/yyyy' }}</span>
+                }
+              </span>
+            }
           </div>
+        } @empty {
+          <p class="text-muted" style="grid-column: 1 / -1;">Aucun bureau enregistré.</p>
         }
       </div>
     </section>

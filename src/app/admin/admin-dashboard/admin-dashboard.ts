@@ -1,13 +1,13 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule , ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule , ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css']
 })
@@ -15,23 +15,23 @@ export class AdminDashboardComponent implements OnInit {
   private apiService = inject(ApiService);
   private router = inject(Router);
 
-  // Élargissement du type pour inclure l'onglet 'contrats'
-  ongletActif = signal<'vue-ensemble' | 'bureaux' | 'reservations' | 'contrats' | 'paiements'>('vue-ensemble');
+  ongletActif = signal<'vue-ensemble' | 'bureaux' | 'reservations' | 'contrats' | 'suivi-clients' | 'suivi-workers' | 'paiements'>('vue-ensemble');
   listeBureaux = signal<any[]>([]);
   listeReservations = signal<any[]>([]);
   listePaiements = signal<any[]>([]);
   totalRevenus = signal<number>(0);
   batiments = signal<any[]>([]);
-  listeContrats = signal<any[]>([]); // Stockage des contrats
+  niveaux = signal<any[]>([]);
+  typesBureau = signal<any[]>([]);
+  listeContrats = signal<any[]>([]);
 
   bureauForm = signal({
     numero: '',
-    niveau: 0,
+    niveau: '',
     espace: 0,
-    prix: 0,
     unite: 0,
-    batiment: '', 
-    type: 0
+    batiment: '',
+    type: ''
   });
 
   ngOnInit(): void {
@@ -43,8 +43,18 @@ export class AdminDashboardComponent implements OnInit {
       next: (data: any[]) => this.batiments.set(data),
       error: (err: any) => console.error('⚠️ Erreur lors du chargement des bâtiments :', err)
     });
-    
-    this.apiService.getBureauxDisponibles().subscribe({
+
+    this.apiService.getNiveaux().subscribe({
+      next: (data: any[]) => this.niveaux.set(data),
+      error: (err: any) => console.error('⚠️ Erreur lors du chargement des niveaux :', err)
+    });
+
+    this.apiService.getTypesBureau().subscribe({
+      next: (data: any[]) => this.typesBureau.set(data),
+      error: (err: any) => console.error('⚠️ Erreur lors du chargement des types de bureau :', err)
+    });
+
+    this.apiService.getBureaux().subscribe({
       next: (data) => this.listeBureaux.set(data),
       error: (err) => console.error('Erreur bureaux admin', err)
     });
@@ -54,7 +64,6 @@ export class AdminDashboardComponent implements OnInit {
       error: (err) => console.error('Erreur réservations admin', err)
     });
 
-    // AJOUT : Chargement de tous les contrats du parc immobilier
     this.apiService.getContrats().subscribe({
       next: (data) => this.listeContrats.set(data),
       error: (err) => console.error('Erreur contrats admin', err)
@@ -63,49 +72,89 @@ export class AdminDashboardComponent implements OnInit {
     this.apiService.getPaiements().subscribe({
       next: (data) => {
         this.listePaiements.set(data);
-        const revenus = data
-        .filter((p: any) => {
-          const statut = p.statut || p.statut_paiement;
-          return statut === 'PAID' || statut === 'PAYE' || statut === 'COMPLETED';
-        })
-        .reduce((sum: number, current: any) => sum + Number(current.montant), 0);
-        this.totalRevenus.set(revenus);
+        this.recalculerRevenus();
       },
       error: (err) => console.error('Erreur paiements admin', err)
     });
   }
-  
-  ajouterBureau(): void {
-    console.log('--- tentative d’ajout de bureau ---');
-    const donnees = this.bureauForm();
-    console.log('Données actuelles du formulaire :', donnees);
-  
-    if (!donnees.numero || !donnees.espace) {
-        alert('Veuillez remplir le numéro et la superficie.');
-        return;
+
+  // Niveaux filtrés selon le bâtiment sélectionné dans le formulaire
+  niveauxDuBatimentSelectionne(): any[] {
+    const batimentId = this.bureauForm().batiment;
+    if (!batimentId) return [];
+    return this.niveaux().filter(n => String(n.batiment) === String(batimentId));
+  }
+
+  getStatutTemporel(dateDebutStr: string, dateFinStr: string): { label: string, css: string } {
+    if (!dateDebutStr || !dateFinStr) return { label: 'Inconnu', css: 'badge-expire' };
+
+    const aujourdhui = new Date();
+    aujourdhui.setHours(0, 0, 0, 0);
+
+    const debut = new Date(dateDebutStr);
+    const fin = new Date(dateFinStr);
+
+    if (aujourdhui < debut) {
+      return { label: 'À venir', css: 'badge-avenir' };
+    } else if (aujourdhui >= debut && aujourdhui <= fin) {
+      return { label: 'En cours', css: 'badge-encours' };
+    } else {
+      return { label: 'Expiré', css: 'badge-expire' };
     }
-  
-    console.log('Envoi de la requête HTTP via ApiService...');
+  }
+
+  ajouterBureau(): void {
+    const donnees = this.bureauForm();
+
+    if (!donnees.numero || !donnees.espace || !donnees.batiment || !donnees.niveau || !donnees.type) {
+      alert('Veuillez remplir tous les champs obligatoires (numéro, superficie, bâtiment, niveau, type).');
+      return;
+    }
+
     this.apiService.creerBureau(donnees).subscribe({
       next: (res) => {
-        console.log('Réponse positive du serveur Django !', res);
         alert('Bureau enregistré !');
         this.listeBureaux.update(b => [...b, res]);
+        this.bureauForm.set({
+          numero: '', niveau: '', espace: 0, unite: 0, batiment: '', type: ''
+        });
       },
-      error: (err) => {
-        console.error('Le serveur Django a renvoyé une erreur :', err);
-        alert(`Erreur serveur : ${err.status} - ${err.message}`);
-      }
+      error: (err) => this.gererErreurBackend(err)
     });
   }
 
-  // Type également mis à jour ici
-  changerOnglet(onglet: 'vue-ensemble' | 'bureaux' | 'reservations' | 'contrats' | 'paiements'): void {
+  // ✅ AJOUT : Méthode pour accepter/valider un contrat en attente
+  onValiderContrat(contratId: number): void {
+    if (confirm('Valider ce contrat maintenant ?')) {
+      this.apiService.validerContrat(contratId).subscribe({
+        next: () => {
+          alert('Contrat validé avec succès.');
+          this.chargerDonneesAdmin(); // Rafraîchit l'affichage global
+        },
+        error: (err) => this.gererErreurBackend(err)
+      });
+    }
+  }
+
+  // ✅ AJOUT : Méthode pour rejeter un contrat en attente
+  onRejeterContrat(contratId: number): void {
+    if (confirm('Rejeter cette demande de contrat ?')) {
+      this.apiService.rejeterContrat(contratId).subscribe({
+        next: () => {
+          alert('Demande de contrat rejetée.');
+          this.chargerDonneesAdmin(); // Rafraîchit l'affichage global
+        },
+        error: (err) => this.gererErreurBackend(err)
+      });
+    }
+  }
+
+  changerOnglet(onglet: 'vue-ensemble' | 'bureaux' | 'reservations' | 'contrats' | 'suivi-clients' | 'suivi-workers' | 'paiements'): void {
     this.ongletActif.set(onglet);
   }
 
   deconnexion(): void {
-    localStorage.removeItem('access_token');
+    localStorage.clear();
     this.router.navigate(['/login']);
   }
 
@@ -114,25 +163,34 @@ export class AdminDashboardComponent implements OnInit {
       this.apiService.validerPaiement(paiementId).subscribe({
         next: (res) => {
           alert(res.detail || 'Paiement validé avec succès !');
-          
-          this.listePaiements.update(paiements => 
-            paiements.map(p => p.id === paiementId ? { ...p, statut: 'PAID' } : p)
+          this.listePaiements.update(paiements =>
+            paiements.map(p => p.id === paiementId ? { ...p, statut: 'PAID', statut_paiement: 'PAID' } : p)
           );
-          
           this.recalculerRevenus();
         },
-        error: (err) => {
-          console.error('Erreur lors de la validation', err);
-          alert(`Erreur : ${err.error?.detail || 'Impossible de valider le paiement.'}`);
-        }
+        error: (err) => this.gererErreurBackend(err)
       });
     }
   }
-  
+
   private recalculerRevenus(): void {
     const revenus = this.listePaiements()
-      .filter((p: any) => p.statut === 'PAID')
+      .filter((p: any) => {
+        const statut = p.statut || p.statut_paiement;
+        return statut === 'PAID' || statut === 'PAYE' || statut === 'COMPLETED';
+      })
       .reduce((sum: number, current: any) => sum + Number(current.montant || 0), 0);
     this.totalRevenus.set(revenus);
+  }
+
+  private gererErreurBackend(err: any): void {
+    console.error('Erreur backend :', err);
+    if (err.error && typeof err.error === 'object') {
+      const cles = Object.keys(err.error);
+      const premierMessage = err.error[cles[0]];
+      alert(`Erreur : ${Array.isArray(premierMessage) ? premierMessage[0] : premierMessage}`);
+    } else {
+      alert('Erreur : ' + (err.error?.detail || err.message || 'Erreur inconnue.'));
+    }
   }
 }

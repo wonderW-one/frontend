@@ -1,47 +1,177 @@
 <div class="admin-layout">
   <aside class="sidebar" style="background-color: #0f172a;">
-    <div class="sidebar-brand"><h3>Espace Manager</h3></div>
-    <div style="padding: 10px; color: #94a3b8;">Suivi des performances</div>
+    <div class="sidebar-brand">
+      <h3>Espace Manager</h3>
+    </div>
+    <div style="padding: 10px; color: #94a3b8; font-size: 13px;">Suivi des performances</div>
+    
+    <nav class="sidebar-menu">
+      <button [class.active]="ongletActif() === 'vue-ensemble'" (click)="changerOnglet('vue-ensemble')">📊 Vue d'ensemble</button>
+      <button [class.active]="ongletActif() === 'reservations'" (click)="changerOnglet('reservations')">📅 Réservations</button>
+      <button [class.active]="ongletActif() === 'contrats'" (click)="changerOnglet('contrats')">💼 Contrats de bail</button>
+      <button [class.active]="ongletActif() === 'paiements'" (click)="changerOnglet('paiements')">💳 Flux Recettes</button>
+    </nav>
+
     <div class="sidebar-footer">
       <button (click)="deconnexion()" class="btn-logout">🚪 Déconnexion</button>
     </div>
   </aside>
 
   <main class="admin-main">
-    <section class="admin-section">
-      <h2>Vue d'ensemble Manager</h2>
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <span class="kpi-title">Chiffre d'Affaires Global</span>
-          <span class="kpi-value" style="color: #0284c7;">{{ chiffreAffaire() | number }} BIF</span>
+    
+    @if (ongletActif() === 'vue-ensemble') {
+      <section class="admin-section">
+        <h2>Vue d'ensemble Manager</h2>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-title">Chiffre d'Affaires Global</span>
+            <span class="kpi-value" style="color: #0284c7;">{{ chiffreAffaire() | number }} FBU</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Demandes de Réservations</span>
+            <span class="kpi-value">{{ listeReservations().length }}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Nombre de Location</span>
+            <span class="kpi-value">{{ listelocation().length }}</span>
+          </div>
+          <div class="kpi-card" style="border-left: 5px solid #f59e0b;">
+            <span class="kpi-title">Taux d'Occupation</span>
+            <span class="kpi-value" style="color: #f59e0b;">{{ tauxOccupation() }} %</span>
+          </div>
         </div>
-        <div class="kpi-card">
-          <span class="kpi-title">Demandes de Réservations</span>
-          <span class="kpi-value">{{ listeReservations().length }}</span>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-title">Nombre de Location</span>
-          <span class="kpi-value">{{ listelocation().length }}</span>
-        </div>
-      </div>
-    </section>
+      </section>
+    }
 
-    <section class="admin-section" style="margin-top: 30px;">
-      <h2>Réservations à Superviser</h2>
-      <table class="admin-table">
-        <thead>
-          <tr><th>ID</th><th>Bureau</th><th>Période</th></tr>
-        </thead>
-        <tbody>
-          @for (res of listeReservations(); track res.id) {
+    @if (ongletActif() === 'reservations') {
+      <section class="admin-section">
+        <h2>Réservations à Superviser</h2>
+        <table class="admin-table">
+          <thead>
             <tr>
-              <td>#{{ res.id }}</td>
-              <td>Bureau {{ res?.bureau_detail?.numero || res.bureau }}</td>
-              <td>Du {{ res.date_debut | date:'dd/MM' }} au {{ res.date_fin | date:'dd/MM' }}</td>
+              <th>ID</th>
+              <th>Bureau</th>
+              <th>Période</th>
+              <th>Statut Actuel</th>
+              <th>Actions Décisions</th>
             </tr>
-          }
-        </tbody>
-      </table>
-    </section>
+          </thead>
+          <tbody>
+            @for (res of listeReservations(); track res.id) {
+              <tr>
+                <td>#{{ res.id }}</td>
+                <td><strong>Bureau {{ res?.bureau_detail?.numero || res.bureau_name }}</strong></td>
+                <td>Du {{ res.date_debut | date:'dd/MM/yyyy' }} au {{ res.date_fin | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <span class="status-indicator" [class.paid]="res.statut === 'VALIDE'" style="font-size: 12px; padding: 2px 6px;">
+                    {{ res?.statut_temporel || 'En attente' }}
+                  </span>
+                </td>
+                <td>
+                  <div style="display: flex; gap: 8px;">
+                    <button (click)="approuverEtCreerContrat(res.id)" class="btn-validate" style="padding: 4px 8px; font-size: 13px;">
+                      🤝 Valider & Louer
+                    </button>
+                    <button (click)="annulerReservation(res.id)" class="btn-logout" style="padding: 4px 8px; font-size: 13px; margin: 0; background-color: #ef4444;">
+                      ❌ Refuser
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-muted" style="text-align: center; padding: 20px;">
+                  Aucune demande de réservation en attente de traitement.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (ongletActif() === 'contrats') {
+      <section class="admin-section">
+        <h2>Registre National des Bails & Contrats</h2>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>N° Contrat</th>
+              <th>Client</th>
+              <th>Espace Loué</th>
+              <th>Date Début</th>
+              <th>Date Fin</th>
+              <th>Tarif Mensuel</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (contrat of listelocation(); track contrat.id) {
+              <tr>
+                <td><strong>#{{ contrat.id }}</strong></td>
+                <td>{{ contrat.client_prenom || 'Client #' + contrat.client }}</td>
+                <td><span style="color: #4f46e5; font-weight: 500;">Bureau {{ contrat.bureau_name || contrat.bureau }}</span></td>
+                <td>{{ contrat.date_debut | date:'dd/MM/yyyy' }}</td>
+                <td>{{ contrat.date_fin | date:'dd/MM/yyyy' }}</td>
+                <td><strong>{{ contrat.montant | number }} FBU</strong></td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="text-muted" style="text-align: center; padding: 20px;">
+                  Aucun contrat de location actif répertorié.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (ongletActif() === 'paiements') {
+      <section class="admin-section">
+        <h2>Suivi Comptable & Encaissements Guichet</h2>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Réf</th>
+              <th>Contrat associé</th>
+              <th>Montant</th>
+              <th>Mode de paiement</th>
+              <th>Statut</th>
+              <th>Régularisation</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of listePaiements(); track p.id) {
+              <tr>
+                <td>#{{ p.id }}</td>
+                <td>Contrat #{{ p.contrat }}</td>
+                <td><strong>{{ p.montant | number }} FBU</strong></td>
+                <td><span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 13px;">{{ p.mode }}</span></td>
+                <td>
+                  <span class="status-indicator" [class.paid]="p.statut === 'PAID' || p.statut_paiement === 'PAID'">
+                    {{ p.statut }}
+                  </span>
+                </td>
+                <td>
+                  @if (p.statut !== 'PAID' && p.statut_paiement !== 'PAID' && p.statut !== 'FAILED') {
+                    <button (click)="validerEncaissement(p.id)" class="btn-validate" style="padding: 4px 8px; font-size: 13px;">
+                      💵 Encaisser les fonds
+                    </button>
+                  } @else {
+                    <span class="text-muted" style="font-size: 13px;">Archivé / Clôturé</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="text-muted" style="text-align: center; padding: 20px;">
+                  Aucun flux de transaction enregistré.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
   </main>
 </div>
