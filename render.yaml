@@ -6,7 +6,7 @@ services:
     staticPublishPath: dist/frontend/browser
     envVars:
       - key: NODE_VERSION
-        value: "22.11.0"
+        value: "22.22.3"
     routes:
       # SPA : toute route inconnue renvoie vers index.html (Angular Router prend le relais côté client)
       - type: rewrite
