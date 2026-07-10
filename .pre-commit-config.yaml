@@ -1,0 +1,8 @@
+- repo: local
+    hooks:
+    -   id: eslint
+        name: ESLint Angular
+        entry: npx eslint --fix
+        language: system
+        files: \.[jt]sx?$
+        exclude: ^(node_modules|dist)/

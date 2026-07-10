@@ -269,7 +269,7 @@
         <h2>Journal Général des Transactions</h2>
         <table class="admin-table">
           <thead>
-            <tr><th>Réf</th><th>Nom</th><th>Montant</th><th>Mode</th><th>Statut</th><th>Actions</th></tr>
+            <tr><th>Réf</th><th>Nom</th><th>Montant</th><th>Mode</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
           </thead>
           <tbody>
             @for (p of listePaiements(); track p.id) {
@@ -278,6 +278,7 @@
                 <td>{{ p.client_detail.user.first_name }}</td>
                 <td><strong>{{ p.montant | number }} FBU</strong></td>
                 <td>{{ p.mode }}</td>
+                <td>{{p.date}}</td>
                 <td>
                   <span class="status-indicator" [class.paid]="p.statut_paiement === 'PAYE' || p.statut_paiement === 'PAID'">
                     {{ p.statut }}

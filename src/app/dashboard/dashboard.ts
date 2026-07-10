@@ -148,6 +148,7 @@ export class DashboardComponent implements OnInit {
   onLouerDirectement(bureauId: number): void {
     const dates = this.formReservation()[bureauId];
     if (!dates || !dates.dateFin) {
+    
       alert('Veuillez spécifier une date de fin.');
       return;
     }

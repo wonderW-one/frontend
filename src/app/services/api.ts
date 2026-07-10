@@ -3,13 +3,17 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = 'http://127.0.0.1:8000/api';
+  private apiUrl = environment.apiUrl;
   private http = inject(HttpClient);
+  
+
+
 
   // NOTE: Les en-têtes d'authentification Bearer sont injectés automatiquement
   // par auth.interceptor.ts pour toutes les requêtes sécurisées.
