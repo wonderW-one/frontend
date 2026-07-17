@@ -299,6 +299,7 @@ export class DashboardComponent implements OnInit {
   ouvrirModalProfil(): void {
     const c = this.client();
     this.formProfil.set({
+      email: c?.user_detail?.email || '',
       telephone: c?.telephone || '',
       addresse: c?.addresse || '',
       date_naissance: c?.date_naissance || '',

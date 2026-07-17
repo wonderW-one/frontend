@@ -548,7 +548,12 @@
               <label class="input-label">Photo de profil</label>
               <input type="file" accept="image/*" (change)="onPhotoProfilSelectionnee($event)" class="custom-input">
             </div>
-
+            
+            <div class="input-group">
+              <label class="input-label">E-mail</label>
+              <input type="email" [(ngModel)]="formProfil().email" name="email" class="custom-input" placeholder="votre@email.com">
+            </div>
+            
             <div class="input-group">
               <label class="input-label">Téléphone</label>
               <input type="tel" [(ngModel)]="formProfil().telephone" name="telephone" class="custom-input" placeholder="+257 ...">
