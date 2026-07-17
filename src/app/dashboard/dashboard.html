@@ -374,7 +374,7 @@
                   </div>
           
                   <span class="badge-type-sm" style="background-color: #dcfce7; color: #15803d; margin-top: 6px;">
-                    Bureau ID: {{ contrat.bureau || 'Via Réservation' }}
+                    Bureau ID: {{ contrat.bureau_detail.numero || 'Via Réservation' }}
                   </span>
                   
                   <div class="res-dates" style="margin-top: 10px;">
@@ -459,7 +459,7 @@
 
               <div class="input-group">
                 <label class="input-label">Montant versé (FBU)</label>
-                <input type="number" step="0.01" placeholder="Ex: 50000" [(ngModel)]="formPaiement().montant" name="montant" class="custom-input" required style="height: 42px;">
+                <input type="number" step="0.01" placeholder="Ex: 10000" [(ngModel)]="formPaiement().montant" name="montant" class="custom-input" required style="height: 42px;">
               </div>
 
               <div class="input-group">
@@ -469,7 +469,7 @@
             </div>
 
             <button type="submit" class="btn-primary-inline" style="background-color: #4f46e5; width: 100%;">
-              Envoyer l'attestation d'encaissement (Statut : PENDING_ADMIN)
+              Envoyer l'attestation d'encaissement
             </button>
           </form>
         </div>

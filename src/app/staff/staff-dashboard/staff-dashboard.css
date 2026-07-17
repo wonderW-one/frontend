@@ -1,5 +1,5 @@
 .admin-layout { display: flex; min-height: 100vh; background-color: #f8fafc; font-family: system-ui, sans-serif; }
-.sidebar { width: 280px; background-color: #1e3a8a; color: #ffffff; padding: 32px 24px; display: flex; flex-direction: column; justify-content: space-between; }
+.sidebar { width: 280px; background-color: #aee6ce; color: #ffffff; padding: 32px 24px; display: flex; flex-direction: column; justify-content: space-between; }
 .sidebar-brand h3 { margin: 0; font-size: 22px; font-weight: 700; }
 .sidebar-menu { display: flex; flex-direction: column; gap: 8px; }
 .sidebar-menu button {
