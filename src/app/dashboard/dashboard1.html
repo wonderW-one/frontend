@@ -1,14 +1,4 @@
 @if (client()) {
-
-  <!-- NOTIFICATIONS TOAST (même structure/markup que admin-dashboard.html) -->
-  <div class="toast-container">
-    @for (toast of toasts(); track toast.id) {
-      <div class="toast toast-{{ toast.type }}">
-        {{ toast.message }}
-      </div>
-    }
-  </div>
-
   <div class="dashboard-container">
       
     <!-- ASIDE : CARTE PROFIL -->
@@ -58,42 +48,7 @@
           <span class="detail-value">{{ client()?.profession || 'Non renseignée' }}</span>
         </div>
 
-        <div class="detail-item">
-          <span class="detail-label">Nationalité</span>
-          <span class="detail-value">{{ client()?.nationalite || 'Non renseignée' }}</span>
-        </div>
-
-        <div class="detail-item">
-          <span class="detail-label">Naissance</span>
-          <span class="detail-value">
-            {{ client()?.date_naissance ? (client()?.date_naissance | date:'dd/MM/yyyy') : 'Non renseignée' }}
-            @if (client()?.lieu_naissance) { — {{ client()?.lieu_naissance }} }
-          </span>
-        </div>
-
-        <div class="detail-item">
-          <span class="detail-label">Pièce d'identité</span>
-          <span class="detail-value">
-            @switch (client()?.type_piece_identite) {
-              @case ('CNI') { CNI }
-              @case ('PASSPORT') { Passeport }
-              @case ('PERMIS') { Permis de conduire }
-              @case ('ACTE_NAISSANCE') { Acte de naissance }
-              @case ('AUTRE') { Autre pièce }
-              @default { Non renseignée }
-            }
-            @if (client()?.numero_piece_identite) { — N° {{ client()?.numero_piece_identite }} }
-          </span>
-        </div>
-
-        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #f3f4f6; display: flex; flex-direction: column; gap: 10px;">
-          <button type="button" class="btn-edit-profile" (click)="ouvrirModalProfil()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
-            </svg>
-            Modifier mon profil
-          </button>
-
+        <div class="logout-wrapper" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #f3f4f6;">
           <button type="button" class="btn-logout" (click)="onLogout()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #ef4444; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 18px; height: 18px;">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
@@ -105,48 +60,6 @@
     </aside>
     
     <main class="main-content">
-
-      <!-- SECTION : VUE D'ENSEMBLE FINANCIÈRE -->
-      <section class="content-section">
-        <div class="section-header-inline">
-          <div class="icon-wrapper bg-indigo-light text-indigo">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-md">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
-            </svg>
-          </div>
-          <h2 class="section-title-lg">Vue d'ensemble</h2>
-        </div>
-
-        <div class="kpi-grid">
-          <div class="kpi-card" [class.kpi-alert]="totalResteAPayer() > 0" [class.kpi-success]="totalResteAPayer() === 0">
-            <span class="kpi-title">Reste à payer</span>
-            <span class="kpi-value" [class.text-warning]="totalResteAPayer() > 0" [class.text-success]="totalResteAPayer() === 0">
-              {{ totalResteAPayer() | number }} FBU
-            </span>
-            <span class="kpi-sub">Sur {{ contratsActifs().length }} contrat(s) actif(s)</span>
-          </div>
-
-          <div class="kpi-card kpi-neutral">
-            <span class="kpi-title">Prochaine échéance</span>
-            <span class="kpi-value" style="font-size: 1.1rem;">
-              {{ prochaineEcheance() ? (prochaineEcheance() | date:'dd MMMM yyyy') : 'Aucune' }}
-            </span>
-            <span class="kpi-sub">Date de fin de bail la plus proche</span>
-          </div>
-
-          <div class="kpi-card kpi-success">
-            <span class="kpi-title">Contrats actifs</span>
-            <span class="kpi-value">{{ contratsActifs().length }}</span>
-            <span class="kpi-sub">Sur {{ contrats().length }} au total</span>
-          </div>
-
-          <div class="kpi-card">
-            <span class="kpi-title">Réservations en cours</span>
-            <span class="kpi-value">{{ reservationsEnAttente() }}</span>
-            <span class="kpi-sub">Sur {{ reservations().length }} au total</span>
-          </div>
-        </div>
-      </section>
       
       <!-- SECTION : LISTE COMPLETE DES BUREAUX -->
       <section class="content-section">
@@ -183,7 +96,7 @@
                   
                   <div class="bureau-item-actions">
                     <div class="price-tag">
-                      {{ bureau?.prix | number }} <span class="currency-sm">FBU</span>
+                      {{ bureau?.prix | number }} <span class="currency-sm">CFA</span>
                     </div>
                     <button class="btn-toggle" [class.rotated]="bureauSelectionneId() === bureau.id">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="icon-xs">
@@ -201,7 +114,6 @@
                           <label class="input-label">Date de début (réservation uniquement)</label>
                           <input type="date" 
                                  [value]="formReservation()[bureau.id]?.dateDebut || ''"
-                                 [attr.min]="bureau.date_disponibilite_prevue || null"
                                  (input)="updateDate(bureau.id, 'dateDebut', $any($event.target).value)"
                                  class="custom-input">
                         </div>
@@ -210,21 +122,16 @@
                           <label class="input-label">Date de fin</label>
                           <input type="date" 
                                  [value]="formReservation()[bureau.id]?.dateFin || ''"
-                                 [attr.min]="bureau.date_disponibilite_prevue || null"
                                  (input)="updateDate(bureau.id, 'dateFin', $any($event.target).value)"
                                  required 
                                  class="custom-input">
                         </div>
                       
                         <div class="button-group-inline" style="display: flex; gap: 10px;">
-                          <!-- ✅ CHANGEMENT DE RÈGLE : la RÉSERVATION reste possible même si le
-                               bureau est actuellement OCCUPE (ex: pour la période qui suit la fin
-                               de la location en cours). Seule la LOCATION DIRECTE (immédiate) reste
-                               bloquée tant que le bureau n'est pas physiquement libre. -->
-                          <button type="button" (click)="onReserver(bureau.id)" class="btn-primary-inline">
+                          <button type="button" (click)="onReserver(bureau.id)" class="btn-primary-inline" [disabled]="bureau.statut === 'OCCUPE'">
                             Réserver l'espace
                           </button>
-                          <button type="button" (click)="onLouerDirectement(bureau.id)" class="btn-success-inline" style="background-color: #10b981; color: white; border: none; border-radius: 0.5rem; padding: 0.6rem 1rem; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; cursor: pointer;" [disabled]="bureau.statut === 'OCCUPE'" [title]="bureau.statut === 'OCCUPE' ? 'Location directe indisponible : ce bureau est actuellement occupé.' : ''">
+                          <button type="button" (click)="onLouerDirectement(bureau.id)" class="btn-success-inline" style="background-color: #10b981; color: white; border: none; border-radius: 0.5rem; padding: 0.6rem 1rem; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; cursor: pointer;" [disabled]="bureau.statut === 'OCCUPE'">
                             ⚡ Demander la location directe
                           </button>
                         </div>
@@ -234,8 +141,7 @@
                       </p>                      
                       @if (bureau.date_disponibilite_prevue) {
                         <p style="font-size: 0.75rem; color: #b45309; margin-top: 8px; font-style: italic;">
-                          ℹ️ Ce bureau est actuellement occupé — libération prévue le : {{ bureau.date_disponibilite_prevue | date:'dd/MM/yyyy' }}.
-                          Vous pouvez néanmoins le <strong>réserver</strong> à partir de cette date ; la location directe immédiate n'est en revanche pas possible tant qu'il n'est pas libéré.
+                          ℹ️ Ce bureau est actuellement occupé. Libération prévue le : {{ bureau.date_disponibilite_prevue | date:'dd/MM/yyyy' }}
                         </p>
                       }
                     </form>
@@ -283,17 +189,12 @@
                   </div>
                 </div>
         
-                <div class="card-actions" style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; align-items: center;">
-                  <div style="display: flex; gap: 6px;">
-                    @if (res.is_active) {
-                      <button class="btn-success-sm" (click)="onLouerDepuisReservation(res)" style="background-color: #10b981; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">
-                        🔑 Signer Contrat
-                      </button>
-                      <button class="btn-danger-sm" (click)="onAnnulerReservation(res.id)" style="background-color: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">
-                        ✕ Annuler
-                      </button>
-                    }
-                  </div>
+                <div class="card-actions" style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                  @if (res.is_active) {
+                    <button class="btn-success-sm" (click)="onLouerDepuisReservation(res)" style="background-color: #10b981; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">
+                      🔑 Signer Contrat
+                    </button>
+                  }
                   <button class="btn-detail-sm" (click)="toggleReservationDetails(res, res.id)">
                     {{ selectedReservation()?.id === res.id ? 'Masquer' : 'Voir détails' }}
                   </button>
@@ -320,12 +221,9 @@
                 <p><strong>Téléphone :</strong> {{ selected.client_detail?.telephone }}</p>
 
                 @if (selected.is_active) {
-                  <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd; display: flex; flex-direction: column; gap: 8px;">
+                  <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd;">
                     <button class="btn-primary-inline" (click)="onLouerDepuisReservation(selected)" style="width: 100%; background-color: #0284c7;">
                       Convertir cette réservation en Contrat Officiel
-                    </button>
-                    <button class="btn-secondary-inline" (click)="onAnnulerReservation(selected.id)" style="width: 100%; background-color: #fee2e2; color: #b91c1c;">
-                      Annuler cette réservation
                     </button>
                   </div>
                 }
@@ -440,10 +338,8 @@
                 <label class="input-label">Contrat Lié</label>
                 <select [(ngModel)]="formPaiement().contrat" name="contrat" class="custom-input" required style="height: 42px;">
                   <option value="" disabled selected>Choisir un contrat cadre</option>
-                  @for (contrat of contratsPourPaiement(); track contrat.id) {
+                  @for (contrat of contrats(); track contrat.id) {
                     <option [value]="contrat.id">Contrat N° {{ contrat.id }} (Montant: {{ contrat.montant }} FBU)</option>
-                  } @empty {
-                    <option value="" disabled>Aucun contrat validé pour le moment</option>
                   }
                 </select>
               </div>
@@ -532,84 +428,6 @@
   
     </main>
   </div>
-
-  <!-- MODAL : ÉDITION DU PROFIL -->
-  @if (modalProfilOuvert()) {
-    <div class="modal-overlay" (click)="fermerModalProfil()">
-      <div class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-head">
-          <h3 class="modal-title">Modifier mon profil</h3>
-          <button type="button" class="close-btn" (click)="fermerModalProfil()" aria-label="Fermer">&times;</button>
-        </div>
-
-        <form (submit)="onEnregistrerProfil(); $event.preventDefault()">
-          <div class="modal-body">
-            <div class="input-group full-width">
-              <label class="input-label">Photo de profil</label>
-              <input type="file" accept="image/*" (change)="onPhotoProfilSelectionnee($event)" class="custom-input">
-            </div>
-
-            <div class="input-group">
-              <label class="input-label">Téléphone</label>
-              <input type="tel" [(ngModel)]="formProfil().telephone" name="telephone" class="custom-input" placeholder="+257 ...">
-            </div>
-
-            <div class="input-group">
-              <label class="input-label">Adresse postale</label>
-              <input type="text" [(ngModel)]="formProfil().addresse" name="addresse" class="custom-input" placeholder="Quartier, ville...">
-            </div>
-
-            <div class="input-group">
-              <label class="input-label">Date de naissance</label>
-              <input type="date" [(ngModel)]="formProfil().date_naissance" name="date_naissance" class="custom-input">
-            </div>
-
-            <div class="input-group">
-              <label class="input-label">Lieu de naissance</label>
-              <input type="text" [(ngModel)]="formProfil().lieu_naissance" name="lieu_naissance" class="custom-input">
-            </div>
-
-            <div class="input-group">
-              <label class="input-label">Nationalité</label>
-              <input type="text" [(ngModel)]="formProfil().nationalite" name="nationalite" class="custom-input">
-            </div>
-
-            <div class="input-group">
-              <label class="input-label">Profession</label>
-              <input type="text" [(ngModel)]="formProfil().profession" name="profession" class="custom-input">
-            </div>
-
-            <div class="input-group">
-              <label class="input-label">Type de pièce d'identité</label>
-              <select [(ngModel)]="formProfil().type_piece_identite" name="type_piece_identite" class="custom-input" style="height: 42px;">
-                <option value="">Choisir...</option>
-                <option value="CNI">Carte Nationale d'Identité</option>
-                <option value="PASSPORT">Passeport</option>
-                <option value="PERMIS">Permis de conduire</option>
-                <option value="ACTE_NAISSANCE">Acte de naissance</option>
-                <option value="AUTRE">Autre</option>
-              </select>
-            </div>
-
-            <div class="input-group">
-              <label class="input-label">Numéro de la pièce</label>
-              <input type="text" [(ngModel)]="formProfil().numero_piece_identite" name="numero_piece_identite" class="custom-input">
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn-secondary-inline" (click)="fermerModalProfil()" [disabled]="enregistrementProfilEnCours()">
-              Annuler
-            </button>
-            <button type="submit" class="btn-primary-inline" style="width: auto; background-color: #4f46e5;" [disabled]="enregistrementProfilEnCours()">
-              {{ enregistrementProfilEnCours() ? 'Enregistrement...' : 'Enregistrer les modifications' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  }
-
 } @else {
   <div class="loading-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
     <div class="spinner"></div>

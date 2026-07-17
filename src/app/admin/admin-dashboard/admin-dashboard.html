@@ -6,11 +6,13 @@
     <nav class="sidebar-menu">
       <button [class.active]="ongletActif() === 'vue-ensemble'" (click)="changerOnglet('vue-ensemble')">Vue d'ensemble</button>
       <button [class.active]="ongletActif() === 'bureaux'" (click)="changerOnglet('bureaux')">Gestion des Bureaux</button>
+      <button [class.active]="ongletActif() === 'batiments-niveaux'" (click)="changerOnglet('batiments-niveaux')">🏢 Bâtiments & Niveaux</button>
       <button [class.active]="ongletActif() === 'reservations'" (click)="changerOnglet('reservations')">Réservations globales</button>
       <button [class.active]="ongletActif() === 'contrats'" (click)="changerOnglet('contrats')">Registre des Contrats</button>
       <button [class.active]="ongletActif() === 'suivi-clients'" (click)="changerOnglet('suivi-clients')">👥 Clients & Bureaux</button>
       <button [class.active]="ongletActif() === 'suivi-workers'" (click)="changerOnglet('suivi-workers')">🛠️ Encaisses validées</button>
       <button [class.active]="ongletActif() === 'paiements'" (click)="changerOnglet('paiements')">Flux des Paiements</button>
+      <button [class.active]="ongletActif() === 'fiche-clients'" (click)="changerOnglet('fiche-clients')">📇 Fiches Clients</button>
     </nav>
     <div class="sidebar-footer">
       <button (click)="deconnexion()" class="btn-logout">🚪 Déconnexion</button>
@@ -34,7 +36,94 @@
             <span class="kpi-title">Nombre de Bureaux</span>
             <span class="kpi-value">{{ listeBureaux().length }}</span>
           </div>
+          <div class="kpi-card" style="border-left: 5px solid #f59e0b;">
+            <span class="kpi-title">Contrats en attente de validation</span>
+            <span class="kpi-value" style="color: #f59e0b;">{{ contratsEnAttente() }}</span>
+          </div>
+          <div class="kpi-card" style="border-left: 5px solid #f59e0b;">
+            <span class="kpi-title">Paiements en attente (Travailleur)</span>
+            <span class="kpi-value" style="color: #f59e0b;">{{ paiementsEnAttenteAdmin() }}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Taux d'occupation moyen</span>
+            <span class="kpi-value">{{ tauxOccupationMoyen() }} %</span>
+          </div>
         </div>
+      </section>
+    }
+
+    @if (ongletActif() === 'batiments-niveaux') {
+      <section class="admin-section">
+        <h2>Ajouter un Bâtiment</h2>
+        <form (submit)="ajouterBatiment(); $event.preventDefault()" class="admin-form">
+          <div class="form-row">
+            <input type="text" placeholder="Nom du bâtiment" [(ngModel)]="batimentForm().nom" name="nom_batiment" required>
+            <input type="text" placeholder="Adresse" [(ngModel)]="batimentForm().adresse" name="adresse_batiment" required>
+            <input type="number" placeholder="Nombre d'étages" [(ngModel)]="batimentForm().nombre_etages" name="nombre_etages">
+            <input type="text" placeholder="Nom du propriétaire" [(ngModel)]="batimentForm().proprietaire_nom" name="proprietaire_nom">
+            <input type="text" placeholder="Téléphone propriétaire" [(ngModel)]="batimentForm().proprietaire_telephone" name="proprietaire_telephone">
+            <button type="submit" class="btn-submit-bureau">Enregistrer le bâtiment</button>
+          </div>
+        </form>
+
+        <h2>Ajouter un Niveau</h2>
+        <form (submit)="ajouterNiveau(); $event.preventDefault()" class="admin-form">
+          <div class="form-row">
+            <input type="text" placeholder="Nom du niveau (ex: Rez-de-chaussée)" [(ngModel)]="niveauForm().nom" name="nom_niveau" required>
+            <select [(ngModel)]="niveauForm().batiment" name="batiment_niveau" required class="form-select">
+              <option value="" disabled selected>Choisir un bâtiment</option>
+              @for (batiment of batiments(); track batiment.id) {
+                <option [value]="batiment.id">{{ batiment.nom }}</option>
+              }
+            </select>
+            <button type="submit" class="btn-submit-bureau">Enregistrer le niveau</button>
+          </div>
+        </form>
+
+        <h2>Parc Immobilier</h2>
+        <table class="admin-table">
+          <thead>
+            <tr><th>Bâtiment</th><th>Adresse</th><th>Étages</th><th>Taux d'occupation</th><th>Revenus totaux</th></tr>
+          </thead>
+          <tbody>
+            @for (batiment of batiments(); track batiment.id) {
+              <tr>
+                <td><strong>{{ batiment.nom }}</strong></td>
+                <td>{{ batiment.adresse }}</td>
+                <td>{{ batiment.nombre_etages }}</td>
+                <td>{{ statistiquesDuBatiment(batiment.id)?.taux_occupation ?? 0 }} %</td>
+                <td>{{ statistiquesDuBatiment(batiment.id)?.revenues_totaux ?? 0 | number }} FBU</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-muted" style="text-align: center; padding: 20px;">
+                  Aucun bâtiment enregistré.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <h2 style="margin-top:24px;">Niveaux enregistrés</h2>
+        <table class="admin-table">
+          <thead>
+            <tr><th>Niveau</th><th>Bâtiment</th></tr>
+          </thead>
+          <tbody>
+            @for (niveau of niveaux(); track niveau.id) {
+              <tr>
+                <td>{{ niveau.nom }}</td>
+                <td>{{ niveau.batiment_detail?.nom }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="2" class="text-muted" style="text-align: center; padding: 20px;">
+                  Aucun niveau enregistré.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </section>
     }
 
@@ -110,17 +199,44 @@
         <h2>Historique Central des Réservations</h2>
         <table class="admin-table">
           <thead>
-            <tr><th>ID</th><th>Client</th><th>Bureau</th><th>Période de réservation</th><th>Statut Temporel</th></tr>
+            <tr><th>ID</th><th>Client</th><th>Bureau</th><th>Période de réservation</th><th>Statut Temporel</th><th>Statut Validation</th><th>Actions</th></tr>
           </thead>
           <tbody>
             @for (res of listeReservations(); track res.id) {
               @let temporel = getStatutTemporel(res.date_debut, res.date_fin);
               <tr>
                 <td>#{{ res.id }}</td>
-                <td>{{ res.client_prenom }}</td>
-                <td>Bureau {{ res.bureau_name }}</td>
+                <td>{{ res.client_detail?.user?.first_name || res.client_prenom }}</td>
+                <td>Bureau {{ res.bureau_detail?.numero || res.bureau_name }}</td>
                 <td>Du {{ res.date_debut | date:'dd/MM/yyyy' }} au {{ res.date_fin | date:'dd/MM/yyyy' }}</td>
                 <td><span class="badge {{ temporel.css }}">{{ temporel.label }}</span></td>
+                <td>
+                  <span class="status-indicator"
+                        [class.paid]="res.statut === 'VALIDEE'"
+                        [class.text-muted]="res.statut === 'EN_ATTENTE'">
+                    {{ res.statut === 'VALIDEE' ? 'Validée' : (res.statut === 'REJETEE' ? 'Rejetée' : 'En attente') }}
+                  </span>
+                </td>
+                <td>
+                  @if (res.statut === 'EN_ATTENTE') {
+                    <div style="display: flex; gap: 5px;">
+                      <button (click)="onValiderReservation(res.id)" class="btn-validate" style="padding: 4px 8px; font-size: 12px;">
+                        ✅ Accepter
+                      </button>
+                      <button (click)="onRejeterReservation(res.id)" class="btn-logout" style="padding: 4px 8px; font-size: 12px; background-color: #ef4444; margin: 0;">
+                        ❌ Rejeter
+                      </button>
+                    </div>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="text-muted" style="text-align: center; padding: 20px;">
+                  Aucune réservation enregistrée.
+                </td>
               </tr>
             }
           </tbody>
@@ -280,7 +396,7 @@
                 <td>{{ p.mode }}</td>
                 <td>{{p.date}}</td>
                 <td>
-                  <span class="status-indicator" [class.paid]="p.statut_paiement === 'PAYE' || p.statut_paiement === 'PAID'">
+                  <span class="status-indicator" [class.paid]="p.statut_paiement === 'PAYE' || p.statut === 'PAID'">
                     {{ p.statut }}
                   </span>
                 </td>
@@ -299,5 +415,80 @@
         </table>
       </section>
     }
+    @if (ongletActif() === 'fiche-clients') {
+      <section class="admin-section">
+        <h2>Fiches Clients</h2>
+        <table class="admin-table">
+          <thead>
+            <tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Rôle</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            @for (c of listeClients(); track c.user_id) {
+              <tr>
+                <td>{{ c.user_detail?.first_name }} {{ c.user_detail?.last_name }}</td>
+                <td>{{ c.user_detail?.email }}</td>
+                <td>{{ c.telephone || '—' }}</td>
+                <td>{{ c.role }}</td>
+                <td><button class="btn-validate" (click)="voirFicheClient(c)">Voir la fiche</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+    
+    @if (clientSelectionne(); as c) {
+      <div class="modal-overlay">
+        <div class="modal-box" style="max-width: 500px;">
+          <h3>{{ c.user_detail?.first_name }} {{ c.user_detail?.last_name }}</h3>
+          @if (c.photo_profil) {
+            <img [src]="c.photo_profil" style="width:100px;height:100px;border-radius:50%;object-fit:cover;" />
+          }
+          <p><strong>Email :</strong> {{ c.user_detail?.email }}</p>
+          <p><strong>Téléphone :</strong> {{ c.telephone || '—' }}</p>
+          <p><strong>Adresse :</strong> {{ c.addresse || '—' }}</p>
+          <p><strong>Date de naissance :</strong> {{ c.date_naissance || '—' }}</p>
+          <p><strong>Lieu de naissance :</strong> {{ c.lieu_naissance || '—' }}</p>
+          <p><strong>Nationalité :</strong> {{ c.nationalite || '—' }}</p>
+          <p><strong>Profession :</strong> {{ c.profession || '—' }}</p>
+          <p><strong>Pièce d'identité :</strong> {{ c.type_piece_identite || '—' }} n° {{ c.numero_piece_identite || '—' }}</p>
+          @if (documentContratDuClient(c.user_id); as doc) {
+            <p><strong>Document de contrat :</strong> <a [href]="doc" target="_blank">Voir le fichier</a></p>
+          } @else {
+            <p class="text-muted">Aucun document de contrat.</p>
+          }
+          <button class="btn-logout" (click)="fermerFicheClient()">Fermer</button>
+        </div>
+      </div>
+    }
+
+    <!-- 🔴 CORRECTION CRITIQUE : Modale de confirmation.
+         Sans ce bloc, demanderConfirmation() stocke une action en attente dans
+         confirmationDemandee() mais rien ne s'affiche jamais à l'écran : aucun
+         bouton "Confirmer" n'existe donc confirmerAction() n'est jamais appelé
+         et AUCUNE requête HTTP ne part (Valider un contrat, une réservation, un
+         paiement, archiver un bureau, changer un rôle, se déconnecter...). -->
+    @if (confirmationDemandee(); as demande) {
+      <div class="modal-overlay">
+        <div class="modal-box">
+          <p>{{ demande.message }}</p>
+          <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+            <button class="btn-logout" style="width:auto;" (click)="annulerConfirmation()">Annuler</button>
+            <button class="btn-validate" (click)="confirmerAction()">{{ demande.intitule }}</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- 🔴 CORRECTION : Conteneur de toasts, absent du template -> les messages
+         de succès/erreur (afficherToast) étaient calculés mais jamais affichés,
+         donnant l'impression que rien ne se passait, y compris en cas d'erreur. -->
+    <div class="toast-container">
+      @for (toast of toasts(); track toast.id) {
+        <div class="toast toast-{{ toast.type }}">
+          {{ toast.message }}
+        </div>
+      }
+    </div>
   </main>
 </div>

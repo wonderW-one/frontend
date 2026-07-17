@@ -1,38 +1,286 @@
 <div class="admin-layout">
+
+  <!-- NOTIFICATIONS TOAST -->
+  <div class="toast-container">
+    @for (toast of toasts(); track toast.id) {
+      <div class="toast toast-{{ toast.type }}">
+        {{ toast.message }}
+      </div>
+    }
+  </div>
+
   <aside class="sidebar">
-    <div class="sidebar-brand"><h3>Espace Staff</h3></div>
-    <p style="color: #bfdbfe; font-size: 13px;">Fiches d'occupation des espaces</p>
+    <div>
+      <div class="sidebar-brand"><h3>Espace Staff</h3></div>
+      <p style="color: #bfdbfe; font-size: 13px; margin: 0 0 24px 0;">
+        {{ profil()?.user_detail?.first_name || profil()?.user_detail?.username || 'Travailleur' }}
+      </p>
+
+      <div class="sidebar-menu">
+        <button [class.active]="ongletActif() === 'bureaux'" (click)="changerOnglet('bureaux')">🏢 Bureaux</button>
+        <button [class.active]="ongletActif() === 'clients'" (click)="changerOnglet('clients')">👤 Clients</button>
+        <button [class.active]="ongletActif() === 'contrats'" (click)="changerOnglet('contrats')">📄 Contrats</button>
+        <button [class.active]="ongletActif() === 'paiements'" (click)="changerOnglet('paiements')">💳 Paiements</button>
+        <button [class.active]="ongletActif() === 'rapport'" (click)="changerOnglet('rapport')">📝 Rapport de travail</button>
+      </div>
+    </div>
+
     <div class="sidebar-footer">
       <button (click)="deconnexion()" class="btn-logout">🚪 Déconnexion</button>
     </div>
   </aside>
 
   <main class="admin-main">
-    <section class="admin-section">
-      <h2>Statut des Espaces (Temps Réel)</h2>
-      <div class="kpi-grid">
-        @for (bureau of bureauxStatut(); track bureau.id) {
-          <div class="kpi-card" [style.border-left]="bureau.statut === 'DISPONIBLE' ? '5px solid #10b981' : '5px solid #ef4444'">
-            <span class="kpi-value">Bureau {{ bureau.numero }}</span>
-            <span class="kpi-title">Étage : {{ bureau?.niveau_detail?.nom || 'N/A' }}</span>
-            <!-- ✅ CORRIGÉ : badge dynamique reflétant le vrai statut, plus de texte codé en dur -->
-            @if (bureau.statut === 'DISPONIBLE') {
-              <span class="badge" style="background-color: #d1fae5; color: #065f46; width: fit-content; padding: 4px 8px; border-radius: 4px; margin-top: 10px;">
-                Prêt / Disponible
-              </span>
-            } @else {
-              <span class="badge" style="background-color: #fee2e2; color: #b91c1c; width: fit-content; padding: 4px 8px; border-radius: 4px; margin-top: 10px;">
-                Occupé
-                @if (bureau.date_disponibilite_prevue) {
-                  <span style="font-weight: 400;"> — libre le {{ bureau.date_disponibilite_prevue | date:'dd/MM/yyyy' }}</span>
-                }
-              </span>
-            }
+
+    <!-- ================= BUREAUX ================= -->
+    @if (ongletActif() === 'bureaux') {
+      <section class="admin-section">
+        <h2>Statut des Espaces (Temps Réel)</h2>
+        <div class="kpi-grid">
+          @for (bureau of bureauxStatut(); track bureau.id) {
+            <div class="kpi-card" [style.border-left]="bureau.statut === 'DISPONIBLE' ? '5px solid #10b981' : '5px solid #ef4444'">
+              <span class="kpi-value">Bureau {{ bureau.numero }}</span>
+              <span class="kpi-title">Étage : {{ bureau?.niveau_detail?.nom || 'N/A' }}</span>
+              @if (bureau.statut === 'DISPONIBLE') {
+                <span class="badge" style="background-color: #d1fae5; color: #065f46; width: fit-content; padding: 4px 8px; border-radius: 4px; margin-top: 10px;">
+                  Prêt / Disponible
+                </span>
+              } @else {
+                <span class="badge" style="background-color: #fee2e2; color: #b91c1c; width: fit-content; padding: 4px 8px; border-radius: 4px; margin-top: 10px;">
+                  Occupé
+                  @if (bureau.date_disponibilite_prevue) {
+                    <span style="font-weight: 400;"> — libre le {{ bureau.date_disponibilite_prevue | date:'dd/MM/yyyy' }}</span>
+                  }
+                </span>
+              }
+            </div>
+          } @empty {
+            <p class="text-muted" style="grid-column: 1 / -1;">Aucun bureau enregistré.</p>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- ================= CLIENTS ================= -->
+    @if (ongletActif() === 'clients') {
+      <section class="admin-section">
+        <h2>Clients</h2>
+
+        @if (!clientSelectionne()) {
+          <div class="admin-form">
+            <input type="text" class="form-select" style="min-width: 280px;" placeholder="Rechercher un client (nom, email...)"
+                   [ngModel]="rechercheClient()" (ngModelChange)="rechercheClient.set($event)">
           </div>
-        } @empty {
-          <p class="text-muted" style="grid-column: 1 / -1;">Aucun bureau enregistré.</p>
+
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Rôle</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of clientsFiltres(); track c.id) {
+                <tr>
+                  <td>{{ c.user_detail?.first_name }} {{ c.user_detail?.last_name }}</td>
+                  <td>{{ c.user_detail?.email || '—' }}</td>
+                  <td>{{ c.telephone || '—' }}</td>
+                  <td><span class="badge-type-sm">{{ c.role }}</span></td>
+                  <td><button class="btn-validate" (click)="ouvrirFicheClient(c)">Voir la fiche</button></td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="text-muted">Aucun client trouvé.</td></tr>
+              }
+            </tbody>
+          </table>
         }
-      </div>
-    </section>
+
+        <!-- FICHE CLIENT DÉTAILLÉE -->
+        @if (clientSelectionne(); as client) {
+          <div class="admin-form">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="margin: 0;">
+                Fiche de {{ client.user_detail?.first_name }} {{ client.user_detail?.last_name }}
+              </h3>
+              <button class="btn-secondary-inline" style="width: auto; padding: 8px 16px;" (click)="fermerFicheClient()">← Retour à la liste</button>
+            </div>
+
+            <div class="kpi-grid" style="margin-top: 20px;">
+              <div class="kpi-card">
+                <span class="kpi-title">Téléphone</span>
+                <span class="kpi-value" style="font-size: 1rem;">{{ client.telephone || 'Non renseigné' }}</span>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-title">Email</span>
+                <span class="kpi-value" style="font-size: 1rem;">{{ client.user_detail?.email || 'Non renseigné' }}</span>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-title">Bureaux réservés</span>
+                <span class="kpi-value">{{ reservationsDuClient().length }}</span>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-title">Total payé (validé)</span>
+                <span class="kpi-value text-success">{{ totalPayeParClient() | number }} FBU</span>
+              </div>
+            </div>
+
+            <!-- Bureaux réservés -->
+            <h4 style="margin-top: 28px;">Bureaux réservés</h4>
+            <table class="admin-table">
+              <thead><tr><th>Bureau</th><th>Du</th><th>Au</th><th>Statut</th></tr></thead>
+              <tbody>
+                @for (r of reservationsDuClient(); track r.id) {
+                  <tr>
+                    <td>{{ r.bureau_detail?.numero || r.bureau }}</td>
+                    <td>{{ r.date_debut | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ r.date_fin | date:'dd/MM/yyyy' }}</td>
+                    <td>
+                      @let st = getStatutTemporel(r.date_debut, r.date_fin);
+                      <span class="badge" [ngClass]="st.css">{{ st.label }}</span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="4" class="text-muted">Aucune réservation.</td></tr>
+                }
+              </tbody>
+            </table>
+
+            <!-- Contrats -->
+            <h4 style="margin-top: 28px;">Contrats</h4>
+            <table class="admin-table">
+              <thead><tr><th>Bureau</th><th>Statut</th><th>Montant</th><th>Du</th><th>Au</th></tr></thead>
+              <tbody>
+                @for (c of contratsDuClient(); track c.id) {
+                  <tr>
+                    <td>{{ c.bureau_detail?.numero || c.reservation_detail?.bureau_detail?.numero || '—' }}</td>
+                    <td><span class="badge-type-sm">{{ c.statut }}</span></td>
+                    <td>{{ c.montant | number }} FBU</td>
+                    <td>{{ c.date_debut ? (c.date_debut | date:'dd/MM/yyyy') : '—' }}</td>
+                    <td>{{ c.date_fin ? (c.date_fin | date:'dd/MM/yyyy') : '—' }}</td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="5" class="text-muted">Aucun contrat.</td></tr>
+                }
+              </tbody>
+            </table>
+
+            <!-- Historique des paiements -->
+            <h4 style="margin-top: 28px;">Historique des paiements</h4>
+            <table class="admin-table">
+              <thead><tr><th>Période</th><th>Montant</th><th>Mode</th><th>Statut</th><th>Date</th></tr></thead>
+              <tbody>
+                @for (p of paiementsDuClient(); track p.id) {
+                  <tr>
+                    <td>{{ p.mois_paye }}/{{ p.annee_paye }}</td>
+                    <td>{{ p.montant | number }} FBU</td>
+                    <td>{{ p.mode }}</td>
+                    <td>
+                      <span class="status-indicator" [class.paid]="(p.statut || p.statut_paiement) === 'PAID'">
+                        {{ p.statut || p.statut_paiement }}
+                      </span>
+                    </td>
+                    <td>{{ p.date | date:'dd/MM/yyyy' }}</td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="5" class="text-muted">Aucun paiement enregistré.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ================= CONTRATS ================= -->
+    @if (ongletActif() === 'contrats') {
+      <section class="admin-section">
+        <h2>Tous les contrats</h2>
+        <table class="admin-table">
+          <thead><tr><th>Client</th><th>Bureau</th><th>Statut</th><th>Montant</th><th>Du</th><th>Au</th></tr></thead>
+          <tbody>
+            @for (c of contrats(); track c.id) {
+              <tr>
+                <td>{{ c.client_detail?.user?.first_name || c.client }}</td>
+                <td>{{ c.bureau_detail?.numero || c.reservation_detail?.bureau_detail?.numero || '—' }}</td>
+                <td><span class="badge-type-sm">{{ c.statut }}</span></td>
+                <td>{{ c.montant | number }} FBU</td>
+                <td>{{ c.date_debut ? (c.date_debut | date:'dd/MM/yyyy') : '—' }}</td>
+                <td>{{ c.date_fin ? (c.date_fin | date:'dd/MM/yyyy') : '—' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="text-muted">Aucun contrat.</td></tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    <!-- ================= PAIEMENTS ================= -->
+    @if (ongletActif() === 'paiements') {
+      <section class="admin-section">
+        <h2>Tous les paiements</h2>
+        <table class="admin-table">
+          <thead><tr><th>Client</th><th>Période</th><th>Montant</th><th>Mode</th><th>Statut</th></tr></thead>
+          <tbody>
+            @for (p of paiements(); track p.id) {
+              <tr>
+                <td>{{ p.client_detail?.user?.first_name || p.client }}</td>
+                <td>{{ p.mois_paye }}/{{ p.annee_paye }}</td>
+                <td>{{ p.montant | number }} FBU</td>
+                <td>{{ p.mode }}</td>
+                <td>
+                  <span class="status-indicator" [class.paid]="(p.statut || p.statut_paiement) === 'PAID'">
+                    {{ p.statut || p.statut_paiement }}
+                  </span>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="text-muted">Aucun paiement.</td></tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    <!-- ================= RAPPORT DE TRAVAIL ================= -->
+    @if (ongletActif() === 'rapport') {
+      <section class="admin-section">
+        <h2>Rapport de travail</h2>
+
+        <div class="admin-form">
+          <form (submit)="ajouterRapport(); $event.preventDefault()">
+            <div class="form-row">
+              <input type="text" placeholder="Titre (ex: Visite bureau 12)" [ngModel]="formRapport().titre"
+                     (ngModelChange)="formRapport.update(f => ({...f, titre: $event}))" name="titre">
+            </div>
+            <div class="form-row" style="margin-top: 10px;">
+              <textarea placeholder="Description des tâches effectuées..." rows="3" style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;"
+                        [ngModel]="formRapport().description"
+                        (ngModelChange)="formRapport.update(f => ({...f, description: $event}))" name="description"></textarea>
+            </div>
+            <button type="submit" class="btn-submit-bureau" style="margin-top: 10px;">Ajouter le rapport</button>
+          </form>
+        </div>
+
+        <div>
+          @for (r of rapports(); track r.id) {
+            <div class="admin-form" style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong>{{ r.titre }}</strong>
+                <span class="text-muted">{{ r.date | date:'dd/MM/yyyy HH:mm' }} — {{ r.auteur }}</span>
+              </div>
+              <p style="margin: 8px 0 0 0; color: #334155;">{{ r.description }}</p>
+              <button class="btn-logout" style="width: auto; padding: 6px 14px; margin-top: 10px; font-size: 0.8rem;" (click)="supprimerRapport(r.id)">Supprimer</button>
+            </div>
+          } @empty {
+            <p class="text-muted">Aucun rapport de travail enregistré pour l'instant.</p>
+          }
+        </div>
+      </section>
+    }
+
   </main>
 </div>

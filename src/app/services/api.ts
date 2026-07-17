@@ -41,6 +41,22 @@ export class ApiService {
     return this.http.get<any>(`${this.apiUrl}/clients/mon-profil/`);
   }
 
+  // ✅ AJOUT : liste des profils clients (réservé ADMIN/TRAVAILLEUR/MANAGER côté backend)
+  getClients(): Observable<any[]> {
+    return this.http.get<any>(`${this.apiUrl}/clients/`).pipe(
+      map(response => response.results || response)
+    );
+  }
+
+  mettreAJourMonProfil(donneesProfil: FormData): Observable<any> {
+  return this.http.patch<any>(`${this.apiUrl}/clients/mon-profil/`, donneesProfil);
+  }
+
+  // ✅ AJOUT : changement de rôle d'un client (ADMIN uniquement)
+  mettreAJourRoleClient(clientId: number, role: string): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/clients/${clientId}/`, { role });
+  }
+
   // ==========================================
   //  🏢 STRUCTURE, IMMEUBLES & BUREAUX
   // ==========================================
@@ -51,10 +67,25 @@ export class ApiService {
     );
   }
 
+  // ✅ AJOUT : création d'un bâtiment
+  creerBatiment(donneesBatiment: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/batiments/`, donneesBatiment);
+  }
+
+  // ✅ AJOUT : statistiques d'occupation/revenus d'un bâtiment (endpoint déjà exposé par le backend)
+  getStatistiquesBatiment(batimentId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/batiments/${batimentId}/statistiques/`);
+  }
+
   getNiveaux(): Observable<any[]> {
     return this.http.get<any>(`${this.apiUrl}/niveaux/`).pipe(
       map(response => response.results || response)
     );
+  }
+
+  // ✅ AJOUT : création d'un niveau
+  creerNiveau(donneesNiveau: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/niveaux/`, donneesNiveau);
   }
 
   getTypesBureau(): Observable<any[]> {
@@ -79,6 +110,11 @@ export class ApiService {
     return this.http.post<any>(`${this.apiUrl}/bureaux/`, donneesBureau);
   }
 
+  // ✅ AJOUT : archivage (soft-delete) d'un bureau
+  archiverBureau(bureauId: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/bureaux/${bureauId}/`);
+  }
+
   // ==========================================
   //  📅 RÉSERVATIONS (CLIENTS & MANAGERS)
   // ==========================================
@@ -100,6 +136,15 @@ export class ApiService {
 
   annulerReservation(reservationId: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/reservations/${reservationId}/annuler/`, {});
+  }
+
+  // ✅ AJOUT : validation/rejet des réservations EN_ATTENTE par ADMIN/TRAVAILLEUR/MANAGER
+  validerReservation(reservationId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/reservations/${reservationId}/valider/`, {});
+  }
+
+  rejeterReservation(reservationId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/reservations/${reservationId}/rejeter/`, {});
   }
 
   convertirReservationEnContrat(reservationId: number): Observable<any> {
@@ -135,6 +180,13 @@ export class ApiService {
   
   rejeterContrat(contratId: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/contrats/${contratId}/rejeter-contrat/`, {});
+  }
+
+  // ✅ AJOUT : upload/remplacement du document de contrat signé (le backend expose déjà ce champ)
+  uploaderDocumentContrat(contratId: number, fichier: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('document_contrat_signe', fichier, fichier.name);
+    return this.http.patch<any>(`${this.apiUrl}/contrats/${contratId}/`, formData);
   }
   
   // ==========================================

@@ -1,8 +1,20 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api';
+
+interface Toast {
+  id: number;
+  type: 'success' | 'error' | 'info';
+  message: string;
+}
+
+interface ConfirmationDemandee {
+  message: string;
+  intitule: string;
+  action: () => void;
+}
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -15,7 +27,7 @@ export class AdminDashboardComponent implements OnInit {
   private apiService = inject(ApiService);
   private router = inject(Router);
 
-  ongletActif = signal<'vue-ensemble' | 'bureaux' | 'reservations' | 'contrats' | 'suivi-clients' | 'suivi-workers' | 'paiements'>('vue-ensemble');
+  ongletActif = signal<'vue-ensemble' | 'bureaux' | 'batiments-niveaux' | 'reservations' | 'contrats' | 'suivi-clients' | 'suivi-workers' | 'paiements' | 'clients' | 'batiments' | 'fiche-clients'>('vue-ensemble');
   listeBureaux = signal<any[]>([]);
   listeReservations = signal<any[]>([]);
   listePaiements = signal<any[]>([]);
@@ -24,7 +36,19 @@ export class AdminDashboardComponent implements OnInit {
   niveaux = signal<any[]>([]);
   typesBureau = signal<any[]>([]);
   listeContrats = signal<any[]>([]);
+  listeClients = signal<any[]>([]);
 
+  // ---------- STATISTIQUES PAR BÂTIMENT ----------
+  statistiquesBatiments = signal<{ [id: number]: { taux_occupation: number; revenues_totaux: number; nombre_bureaux: number } }>({});
+
+  // ---------- TOASTS ----------
+  toasts = signal<Toast[]>([]);
+  private toastIdCounter = 0;
+
+  // ---------- MODALE DE CONFIRMATION ----------
+  confirmationDemandee = signal<ConfirmationDemandee | null>(null);
+
+  // ---------- FORMULAIRES ----------
   bureauForm = signal({
     numero: '',
     niveau: '',
@@ -34,13 +58,46 @@ export class AdminDashboardComponent implements OnInit {
     type: ''
   });
 
+  batimentForm = signal({
+    nom: '',
+    adresse: '',
+    nombre_etages: 0,
+    proprietaire_nom: '',
+    proprietaire_telephone: ''
+  });
+
+  niveauForm = signal({
+    nom: '',
+    batiment: ''
+  });
+  clientSelectionne = signal<any | null>(null);
+
+  // ---------- KPIs ----------
+  contratsEnAttente = computed(() =>
+    this.listeContrats().filter(c => c.statut === 'EN_ATTENTE').length
+  );
+
+  paiementsEnAttenteAdmin = computed(() =>
+    this.listePaiements().filter(p => (p.statut || p.statut_paiement) === 'PENDING_ADMIN').length
+  );
+
+  tauxOccupationMoyen = computed(() => {
+    const stats = Object.values(this.statistiquesBatiments());
+    if (!stats.length) return 0;
+    const total = stats.reduce((s, b) => s + (b.taux_occupation || 0), 0);
+    return Math.round((total / stats.length) * 10) / 10;
+  });
+
   ngOnInit(): void {
     this.chargerDonneesAdmin();
   }
 
   chargerDonneesAdmin(): void {
     this.apiService.getBatiments().subscribe({
-      next: (data: any[]) => this.batiments.set(data),
+      next: (data: any[]) => {
+        this.batiments.set(data);
+        this.chargerStatistiquesBatiments(data);
+      },
       error: (err: any) => console.error('⚠️ Erreur lors du chargement des bâtiments :', err)
     });
 
@@ -76,6 +133,44 @@ export class AdminDashboardComponent implements OnInit {
       },
       error: (err) => console.error('Erreur paiements admin', err)
     });
+
+    this.apiService.getClients().subscribe({
+      next: (data) => this.listeClients.set(data),
+      error: (err) => console.error('Erreur clients admin', err)
+    });
+  }
+
+  private chargerStatistiquesBatiments(batimentsList: any[]): void {
+    batimentsList.forEach(b => {
+      this.apiService.getStatistiquesBatiment(b.id).subscribe({
+        next: (stats: any) => {
+          this.statistiquesBatiments.update(s => ({ ...s, [b.id]: stats }));
+        },
+        error: (err: any) => console.error(`⚠️ Erreur statistiques bâtiment #${b.id} :`, err)
+      });
+    });
+  }
+  
+
+  documentContratDuClient(userId: number): string | null {
+    // 🔴 BUG CORRIGÉ : cette méthode reçoit l'ID de l'objet User (c.user_id, tel
+    // qu'utilisé dans la fiche client), alors que `contrat.client` renvoyé par
+    // l'API est la clé primaire du profil Client (Client.id), pas de User.id.
+    // Ces deux valeurs ne coïncident quasiment jamais -> aucun document n'était
+    // jamais trouvé. On compare désormais via contrat.client_detail.user.id,
+    // qui est bien l'ID utilisateur.
+    const contratsDuClient = this.listeContrats()
+      .filter(c => c.client_detail?.user?.id === userId && c.document_contrat_signe)
+      .sort((a, b) => b.id - a.id);
+    return contratsDuClient.length ? contratsDuClient[0].document_contrat_signe : null;
+  }
+
+  voirFicheClient(client: any): void {
+    this.clientSelectionne.set(client);
+  }
+
+  fermerFicheClient(): void {
+    this.clientSelectionne.set(null);
   }
 
   // Niveaux filtrés selon le bâtiment sélectionné dans le formulaire
@@ -103,17 +198,19 @@ export class AdminDashboardComponent implements OnInit {
     }
   }
 
+  // ---------- GESTION DES BUREAUX ----------
+
   ajouterBureau(): void {
     const donnees = this.bureauForm();
 
     if (!donnees.numero || !donnees.espace || !donnees.batiment || !donnees.niveau || !donnees.type) {
-      alert('Veuillez remplir tous les champs obligatoires (numéro, superficie, bâtiment, niveau, type).');
+      this.afficherToast('error', 'Veuillez remplir tous les champs obligatoires (numéro, superficie, bâtiment, niveau, type).');
       return;
     }
 
     this.apiService.creerBureau(donnees).subscribe({
       next: (res) => {
-        alert('Bureau enregistré !');
+        this.afficherToast('success', 'Bureau enregistré avec succès.');
         this.listeBureaux.update(b => [...b, res]);
         this.bureauForm.set({
           numero: '', niveau: '', espace: 0, unite: 0, batiment: '', type: ''
@@ -123,46 +220,166 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  // ✅ AJOUT : Méthode pour accepter/valider un contrat en attente
+  onArchiverBureau(bureau: any): void {
+    this.demanderConfirmation(
+      `Archiver le bureau ${bureau.numero} ? Il ne sera plus proposé à la location.`,
+      'Archiver',
+      () => {
+        this.apiService.archiverBureau(bureau.id).subscribe({
+          next: () => {
+            this.afficherToast('success', 'Bureau archivé avec succès.');
+            this.listeBureaux.update(list => list.filter(b => b.id !== bureau.id));
+          },
+          error: (err) => this.gererErreurBackend(err)
+        });
+      }
+    );
+  }
+
+  // ---------- GESTION DES BÂTIMENTS & NIVEAUX ----------
+
+  ajouterBatiment(): void {
+    const donnees = this.batimentForm();
+    if (!donnees.nom || !donnees.adresse) {
+      this.afficherToast('error', "Le nom et l'adresse du bâtiment sont obligatoires.");
+      return;
+    }
+
+    this.apiService.creerBatiment(donnees).subscribe({
+      next: (res) => {
+        this.afficherToast('success', `Bâtiment "${res.nom}" créé avec succès.`);
+        this.batiments.update(b => [...b, res]);
+        this.batimentForm.set({ nom: '', adresse: '', nombre_etages: 0, proprietaire_nom: '', proprietaire_telephone: '' });
+      },
+      error: (err) => this.gererErreurBackend(err)
+    });
+  }
+
+  ajouterNiveau(): void {
+    const donnees = this.niveauForm();
+    if (!donnees.nom || !donnees.batiment) {
+      this.afficherToast('error', 'Le nom du niveau et le bâtiment associé sont obligatoires.');
+      return;
+    }
+
+    this.apiService.creerNiveau(donnees).subscribe({
+      next: (res) => {
+        this.afficherToast('success', `Niveau "${res.nom}" créé avec succès.`);
+        this.niveaux.update(n => [...n, res]);
+        this.niveauForm.set({ nom: '', batiment: '' });
+      },
+      error: (err) => this.gererErreurBackend(err)
+    });
+  }
+
+  statistiquesDuBatiment(batimentId: number) {
+    return this.statistiquesBatiments()[batimentId] || null;
+  }
+
+  // ---------- GESTION DES CONTRATS ----------
+
   onValiderContrat(contratId: number): void {
-    if (confirm('Valider ce contrat maintenant ?')) {
+    this.demanderConfirmation('Valider ce contrat maintenant ?', 'Valider', () => {
       this.apiService.validerContrat(contratId).subscribe({
         next: () => {
-          alert('Contrat validé avec succès.');
-          this.chargerDonneesAdmin(); // Rafraîchit l'affichage global
+          this.afficherToast('success', 'Contrat validé avec succès.');
+          this.chargerDonneesAdmin();
         },
         error: (err) => this.gererErreurBackend(err)
       });
-    }
+    });
   }
 
-  // ✅ AJOUT : Méthode pour rejeter un contrat en attente
   onRejeterContrat(contratId: number): void {
-    if (confirm('Rejeter cette demande de contrat ?')) {
+    this.demanderConfirmation('Rejeter cette demande de contrat ?', 'Rejeter', () => {
       this.apiService.rejeterContrat(contratId).subscribe({
         next: () => {
-          alert('Demande de contrat rejetée.');
-          this.chargerDonneesAdmin(); // Rafraîchit l'affichage global
+          this.afficherToast('info', 'Demande de contrat rejetée.');
+          this.chargerDonneesAdmin();
         },
         error: (err) => this.gererErreurBackend(err)
       });
-    }
+    });
   }
 
-  changerOnglet(onglet: 'vue-ensemble' | 'bureaux' | 'reservations' | 'contrats' | 'suivi-clients' | 'suivi-workers' | 'paiements'): void {
+  // ---------- GESTION DES RÉSERVATIONS (validation admin/travailleur) ----------
+
+  onValiderReservation(reservationId: number): void {
+    this.demanderConfirmation('Valider cette réservation ?', 'Valider', () => {
+      this.apiService.validerReservation(reservationId).subscribe({
+        next: () => {
+          this.afficherToast('success', 'Réservation validée avec succès.');
+          this.chargerDonneesAdmin();
+        },
+        error: (err) => this.gererErreurBackend(err)
+      });
+    });
+  }
+
+  onRejeterReservation(reservationId: number): void {
+    this.demanderConfirmation('Rejeter cette demande de réservation ?', 'Rejeter', () => {
+      this.apiService.rejeterReservation(reservationId).subscribe({
+        next: () => {
+          this.afficherToast('info', 'Demande de réservation rejetée.');
+          this.chargerDonneesAdmin();
+        },
+        error: (err) => this.gererErreurBackend(err)
+      });
+    });
+  }
+
+  onDocumentContratSelectionne(event: Event, contratId: number): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const fichier = input.files[0];
+
+    this.apiService.uploaderDocumentContrat(contratId, fichier).subscribe({
+      next: () => {
+        this.afficherToast('success', 'Document de contrat téléversé avec succès.');
+        this.chargerDonneesAdmin();
+      },
+      error: (err) => this.gererErreurBackend(err)
+    });
+    input.value = '';
+  }
+
+  // ---------- GESTION DES CLIENTS ----------
+
+  onChangerRoleClient(client: any, nouveauRole: string): void {
+    if (client.role === nouveauRole) return;
+    this.demanderConfirmation(
+      `Changer le rôle de ${client.user_detail?.first_name || client.user_detail?.username} en "${nouveauRole}" ?`,
+      'Confirmer',
+      () => {
+        this.apiService.mettreAJourRoleClient(client.id, nouveauRole).subscribe({
+          next: () => {
+            this.afficherToast('success', 'Rôle mis à jour avec succès.');
+            this.listeClients.update(list =>
+              list.map(c => c.user_id === client.user_id ? { ...c, role: nouveauRole } : c)
+            );
+          },
+          error: (err) => this.gererErreurBackend(err)
+        });
+      }
+    );
+  }
+
+  changerOnglet(onglet: 'vue-ensemble' | 'bureaux' | 'batiments-niveaux' | 'reservations' | 'contrats' | 'suivi-clients' | 'suivi-workers' | 'paiements' | 'clients' | 'batiments' | 'fiche-clients'): void {
     this.ongletActif.set(onglet);
   }
 
   deconnexion(): void {
-    localStorage.clear();
-    this.router.navigate(['/login']);
+    this.demanderConfirmation('Voulez-vous vraiment vous déconnecter ?', 'Déconnexion', () => {
+      localStorage.clear();
+      this.router.navigate(['/login']);
+    });
   }
 
   validerLePaiement(paiementId: number): void {
-    if (confirm('Voulez-vous vraiment marquer ce paiement comme PAYÉ ?')) {
+    this.demanderConfirmation('Voulez-vous vraiment marquer ce paiement comme PAYÉ ?', 'Valider le paiement', () => {
       this.apiService.validerPaiement(paiementId).subscribe({
         next: (res) => {
-          alert(res.detail || 'Paiement validé avec succès !');
+          this.afficherToast('success', res.detail || 'Paiement validé avec succès !');
           this.listePaiements.update(paiements =>
             paiements.map(p => p.id === paiementId ? { ...p, statut: 'PAID', statut_paiement: 'PAID' } : p)
           );
@@ -170,7 +387,7 @@ export class AdminDashboardComponent implements OnInit {
         },
         error: (err) => this.gererErreurBackend(err)
       });
-    }
+    });
   }
 
   private recalculerRevenus(): void {
@@ -183,14 +400,46 @@ export class AdminDashboardComponent implements OnInit {
     this.totalRevenus.set(revenus);
   }
 
+  // ---------- TOASTS ----------
+
+  afficherToast(type: 'success' | 'error' | 'info', message: string): void {
+    const id = ++this.toastIdCounter;
+    this.toasts.update(t => [...t, { id, type, message }]);
+    setTimeout(() => this.retirerToast(id), 4500);
+  }
+
+  retirerToast(id: number): void {
+    this.toasts.update(t => t.filter(toast => toast.id !== id));
+  }
+
+  // ---------- MODALE DE CONFIRMATION ----------
+
+  demanderConfirmation(message: string, intitule: string, action: () => void): void {
+    this.confirmationDemandee.set({ message, intitule, action });
+  }
+
+  confirmerAction(): void {
+    const demande = this.confirmationDemandee();
+    if (demande) {
+      demande.action();
+    }
+    this.confirmationDemandee.set(null);
+  }
+
+  annulerConfirmation(): void {
+    this.confirmationDemandee.set(null);
+  }
+
   private gererErreurBackend(err: any): void {
     console.error('Erreur backend :', err);
+    let message = 'Une erreur est survenue.';
     if (err.error && typeof err.error === 'object') {
       const cles = Object.keys(err.error);
       const premierMessage = err.error[cles[0]];
-      alert(`Erreur : ${Array.isArray(premierMessage) ? premierMessage[0] : premierMessage}`);
+      message = Array.isArray(premierMessage) ? premierMessage[0] : premierMessage;
     } else {
-      alert('Erreur : ' + (err.error?.detail || err.message || 'Erreur inconnue.'));
+      message = err.error?.detail || err.message || 'Erreur inconnue.';
     }
+    this.afficherToast('error', message);
   }
 }

@@ -105,3 +105,85 @@
   font-style: italic;
   font-size: 0.85rem;
 }
+
+.text-indigo {
+  color: #4f46e5;
+}
+
+/* ---------- Badges de statut temporel (réservations / contrats) ---------- */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.badge-avenir { background-color: #dbeafe; color: #1d4ed8; }
+.badge-encours { background-color: #dcfce7; color: #15803d; }
+.badge-expire { background-color: #fee2e2; color: #b91c1c; }
+
+.badge-type-sm {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background-color: #eef2ff;
+  color: #4f46e5;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+/* ---------- Modale de confirmation ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+.modal-box {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 420px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+.modal-box h3 {
+  margin-top: 0;
+  color: #0f172a;
+}
+.modal-box p {
+  color: #334155;
+  margin: 8px 0;
+}
+
+/* ---------- Toasts ---------- */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1200;
+}
+.toast {
+  padding: 12px 18px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: toast-in 0.2s ease-out;
+}
+.toast-success { background-color: #10b981; }
+.toast-error { background-color: #ef4444; }
+.toast-info { background-color: #3b82f6; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
