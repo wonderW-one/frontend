@@ -31,6 +31,12 @@ export class DashboardComponent implements OnInit {
   bureauSelectionneId = signal<number | null>(null);
   selectedReservation = signal<any | null>(null);
 
+  // 🟢 AJOUT : date minimale (aujourd'hui, format YYYY-MM-DD) utilisée comme
+  // borne [min] sur les <input type="date"> de réservation quand le bureau
+  // n'a pas de date_disponibilite_prevue. Manquait dans la classe alors que
+  // le template la référence déjà -> corrige l'erreur TS2339.
+  readonly dateMinReservation: string = new Date().toISOString().split('T')[0];
+
   formReservation = signal<{ [key: number]: { dateDebut: string; dateFin: string } }>({});
 
   formPaiement = signal({
