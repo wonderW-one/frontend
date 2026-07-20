@@ -455,6 +455,7 @@
           @if (c.photo_profil) {
             <img [src]="c.photo_profil" style="width:100px;height:100px;border-radius:50%;object-fit:cover;" />
           }
+          <p><strong>Email :</strong> {{ c.username }}</p>
           <p><strong>Email :</strong> {{ c.user_detail?.email }}</p>
           <p><strong>Téléphone :</strong> {{ c.telephone || '—' }}</p>
           <p><strong>Adresse :</strong> {{ c.addresse || '—' }}</p>
