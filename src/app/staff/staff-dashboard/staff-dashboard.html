@@ -23,6 +23,15 @@
         <button [class.active]="ongletActif() === 'paiements'" (click)="changerOnglet('paiements')">💳 Paiements</button>
         <button [class.active]="ongletActif() === 'rapport'" (click)="changerOnglet('rapport')">📝 Rapport de travail</button>
       </div>
+
+      <!-- Menu déroulant (visible uniquement sur petit écran, voir CSS) -->
+      <select class="sidebar-select-mobile" [value]="ongletActif()" (change)="changerOnglet($any($event.target).value)">
+        <option value="bureaux">🏢 Bureaux</option>
+        <option value="clients">👤 Clients</option>
+        <option value="contrats">📄 Contrats</option>
+        <option value="paiements">💳 Paiements</option>
+        <option value="rapport">📝 Rapport de travail</option>
+      </select>
     </div>
 
     <div class="sidebar-footer">

@@ -829,6 +829,71 @@
 
   .btn-edit-profile:hover { background-color: #e9d9bb; }
 
+  /* ==========================================================================
+     10bis. BOUTONS CONTACT US / ABOUT + MODALES ASSOCIÉES
+     ========================================================================== */
+  .btn-contact-us,
+  .btn-about-us {
+    width: 100%;
+    background-color: #eef2ff;
+    color: #4338ca;
+    border: 1px solid #dbe0fb;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: background-color 0.15s;
+  }
+
+  .btn-contact-us:hover,
+  .btn-about-us:hover {
+    background-color: #dbe0fb;
+  }
+
+  .btn-about-us {
+    background-color: #f4f5f7;
+    color: #2a3644;
+    border: 1px solid #e1e4ea;
+  }
+
+  .btn-about-us:hover {
+    background-color: #e1e4ea;
+  }
+
+  .contact-card {
+    border: 1px solid #f4f5f7;
+    border-radius: 0.75rem;
+    padding: 0.9rem 1rem;
+    background-color: #fafafa;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .contact-batiment-nom {
+    font-weight: 700;
+    color: #1b2530;
+    font-size: 0.95rem;
+    margin: 0 0 2px;
+  }
+
+  .contact-line {
+    font-size: 0.85rem;
+    color: #2a3644;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .contact-line a {
+    color: #4338ca;
+    text-decoration: underline;
+  }
+
   .btn-primary-inline:disabled,
   .btn-success-inline:disabled {
     opacity: 0.55;

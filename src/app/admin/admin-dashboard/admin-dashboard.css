@@ -1,23 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap');
 
-:root {
-  --admin-accent: #a9762f;
-  --admin-accent-soft: #f3e8d7;
-  --admin-ink: #1b2530;
-  --admin-ink-hover: #2a3644;
-  --font-display: 'Sora', 'Segoe UI', sans-serif;
-  --font-body: 'Inter', 'Segoe UI', sans-serif;
-}
-
 .admin-layout {
   display: flex;
   min-height: 100vh;
   background-color: #f4f5f7;
-  font-family: var(--font-body);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 .sidebar {
   width: 260px;
-  background-color: var(--admin-ink);
+  background-color: #1b2530;
   color: #ffffff;
   padding: 24px;
   display: flex;
@@ -26,7 +17,7 @@
 }
 .sidebar-brand h3 {
   margin: 0 0 4px 0;
-  font-family: var(--font-display);
+  font-family: 'Sora', 'Segoe UI', sans-serif;
   font-size: 19px;
   font-weight: 700;
   color: #d3a866;
@@ -45,30 +36,30 @@
   padding: 12px 14px;
   text-align: left;
   font-size: 14.5px;
-  font-family: var(--font-body);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.15s, color 0.15s, border-color 0.15s;
 }
 .sidebar-menu button:hover {
-  background-color: var(--admin-ink-hover);
+  background-color: #2a3644;
   color: #ffffff;
 }
 .sidebar-menu button.active {
-  background-color: var(--admin-ink-hover);
-  border-left-color: var(--admin-accent);
+  background-color: #2a3644;
+  border-left-color: #a9762f;
   color: #ffffff;
   font-weight: 600;
 }
 .sidebar-footer {
   margin-top: auto;
   padding-top: 20px;
-  border-top: 1px solid var(--admin-ink-hover);
+  border-top: 1px solid #2a3644;
 }
 .btn-logout {
   width: 100%;
-  background-color: transparent;
-  color: #e9a5a5;
+  background-color: blue;
+  color: #ffff;
   border: 1px solid #4a2f2f;
   padding: 11px;
   border-radius: 8px;
@@ -84,8 +75,8 @@
 }
 .admin-main { flex: 1; padding: 40px; overflow-y: auto; }
 .admin-section h2 {
-  color: var(--admin-ink);
-  font-family: var(--font-display);
+  color: #1b2530;
+  font-family: 'Sora', 'Segoe UI', sans-serif;
   font-size: 22px;
   font-weight: 700;
   margin-bottom: 24px;
@@ -97,14 +88,14 @@
   padding: 22px 24px;
   border-radius: 10px;
   border: 1px solid #e1e4ea;
-  border-left: 3px solid var(--admin-accent);
+  border-left: 3px solid #a9762f;
   display: flex;
   flex-direction: column;
   gap: 6px;
   box-shadow: 0 1px 2px rgba(27, 37, 48, 0.04);
 }
 .kpi-title { color: #5b6675; font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
-.kpi-value { font-size: 24px; font-weight: 700; color: var(--admin-ink); font-family: var(--font-display); }
+.kpi-value { font-size: 24px; font-weight: 700; color: #1b2530; font-family: 'Sora', 'Segoe UI', sans-serif; }
 .text-success { color: #2f7d4f; }
 .admin-table { width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 10px; overflow: hidden; border: 1px solid #e1e4ea; }
 .admin-table th, .admin-table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #e1e4ea; font-size: 14px; }
@@ -253,7 +244,11 @@
    RESPONSIVE — Adaptation mobile / tablette
    ========================================================================== */
 
-/* Tablette et mobile : la sidebar passe en barre horizontale en haut */
+/* Le sélecteur mobile est masqué par défaut (desktop) : on garde les boutons */
+.sidebar-select-mobile { display: none; }
+
+/* Tablette et mobile : la sidebar devient un bandeau compact avec un menu
+   déroulant (select) à la place de la liste de boutons */
 @media (max-width: 900px) {
   .admin-layout {
     flex-direction: column;
@@ -266,6 +261,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    flex-wrap: wrap;
   }
 
   .sidebar-brand h3 {
@@ -273,19 +269,41 @@
     font-size: 18px;
   }
 
+  /* On cache la liste de boutons, remplacée par le select ci-dessous */
   .sidebar-menu {
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 6px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
+    display: none;
   }
-  .sidebar-menu::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
-  .sidebar-menu button {
-    white-space: nowrap;
-    padding: 10px 14px;
-    font-size: 14px;
+  .sidebar-select-mobile {
+    display: block;
+    order: 3;
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid #2a3644;
+    border-radius: 8px;
+    background-color: #2a3644;
+    color: #ffffff;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23d3a866'><path d='M5.5 7.5l4.5 5 4.5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 14px;
+  }
+
+  .sidebar-select-mobile:focus {
+    outline: none;
+    border-color: #a9762f;
+    box-shadow: 0 0 0 3px rgba(169, 118, 47, 0.3);
+  }
+
+  .sidebar-select-mobile option {
+    background-color: #ffffff;
+    color: #1b2530;
   }
 
   .sidebar-footer {

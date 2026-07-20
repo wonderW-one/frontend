@@ -266,7 +266,7 @@
               <tr>
                 <td><strong>{{ contrat.id }}</strong></td>
                 <td>{{ contrat.client_detail.user.first_name || 'Client #' + contrat.client }}</td>
-                <td><span class="badge-type-sm">Bureau {{ contrat.bureau_numero || contrat.bureau }}</span></td>
+                <td><span class="badge-type-sm">Bureau {{ contrat.bureau_detail.numero || contrat.bureau }}</span></td>
                 <td>
                   @if (contrat.date_debut) {
                     Du {{ contrat.date_debut | date:'dd/MM/yyyy' }} au {{ contrat.date_fin | date:'dd/MM/yyyy' }}
@@ -327,7 +327,7 @@
             @for (contrat of listeContrats(); track contrat.id) {
               <tr>
                 <td><strong>{{ contrat.client_detail.user.first_name || 'Client #' + contrat.client }}</strong></td>
-                <td><span style="color: #4f46e5; font-weight: 500;">Bureau {{ contrat.bureau_numero }}</span></td>
+                <td><span class="badge-type-sm">Bureau {{ contrat.bureau_detail.numero || contrat.bureau }}</span></td>
                 <td>{{ contrat.date_debut | date:'dd MMMM yyyy' }}</td>
                 <td>{{ contrat.date_fin | date:'dd MMMM yyyy' }}</td>
                 <td>{{ contrat.montant | number }} FBU</td>
@@ -428,7 +428,18 @@
                 <td>{{ c.user_detail?.first_name }} {{ c.user_detail?.last_name }}</td>
                 <td>{{ c.user_detail?.email }}</td>
                 <td>{{ c.telephone || '—' }}</td>
-                <td>{{ c.role }}</td>
+                <td>
+                  <!-- 🟢 AJOUT : sélecteur de rôle, branché sur onChangerRoleClient()
+                       déjà présent dans admin-dashboard.ts (confirmation + appel API) -->
+                  <select class="form-select" style="min-width: 150px;"
+                          [value]="c.role"
+                          (change)="onChangerRoleClient(c, $any($event.target).value)">
+                    <option value="CLIENT">CLIENT</option>
+                    <option value="TRAVAILLEUR">TRAVAILLEUR</option>
+                    <option value="MANAGER">MANAGER</option>
+                    <option value="ADMIN">ADMIN</option>
+                  </select>
+                </td>
                 <td><button class="btn-validate" (click)="voirFicheClient(c)">Voir la fiche</button></td>
               </tr>
             }

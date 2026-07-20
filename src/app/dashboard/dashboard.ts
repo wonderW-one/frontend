@@ -46,6 +46,10 @@ export class DashboardComponent implements OnInit {
   photoProfilFichier = signal<File | null>(null);
   enregistrementProfilEnCours = signal(false);
 
+  // ---------- CONTACT US / ABOUT ----------
+  modalContactOuvert = signal(false);
+  modalAboutOuvert = signal(false);
+
   // ---------- TOASTS ----------
   toasts = signal<Toast[]>([]);
   private toastIdCounter = 0;
@@ -91,6 +95,23 @@ export class DashboardComponent implements OnInit {
     this.reservations().filter(r => r.is_active).length
   );
 
+  // 🟢 AJOUT : liste des bâtiments (dédupliqués) avec les coordonnées de leur
+  // propriétaire, dérivée des bureaux déjà chargés (bureau.batiment_detail).
+  // Sert à la modale "Contact Us" pour permettre au client de joindre le
+  // responsable du bâtiment qui l'intéresse.
+  batimentsContact = computed(() => {
+    const vus = new Set<number>();
+    const liste: any[] = [];
+    for (const bureau of this.bureaux()) {
+      const b = bureau?.batiment_detail;
+      if (b && b.id != null && !vus.has(b.id)) {
+        vus.add(b.id);
+        liste.push(b);
+      }
+    }
+    return liste;
+  });
+
   toggleReservationDetails(reservation: any, indexCalcule: number): void {
     if (this.selectedReservation()?.id === reservation.id) {
       this.selectedReservation.set(null);
@@ -125,18 +146,30 @@ export class DashboardComponent implements OnInit {
     });
 
     this.apiService.getBureaux().subscribe({
-      next: (data: any[]) => this.bureaux.set(data),
+      next: (data: any[]) => {
+        this.bureaux.set(data);
+        // 🟢 AJOUT : le formulaire de dates est désormais préparé pour TOUS les
+        // bureaux actifs (disponibles ET occupés), pas seulement les disponibles.
+        // Un bureau occupé reste réservable pour une période future ; c'est le
+        // backend (Reservation.clean(), déjà en place) qui accepte ou rejette
+        // la demande selon un éventuel chevauchement de dates avec une autre
+        // réservation/location en cours sur ce même bureau.
+        this.formReservation.update(forms => {
+          const nouveauxForms = { ...forms };
+          data.forEach((b: any) => {
+            if (!nouveauxForms[b.id]) {
+              nouveauxForms[b.id] = { dateDebut: '', dateFin: '' };
+            }
+          });
+          return nouveauxForms;
+        });
+      },
       error: (err: any) => console.error('⚠️ Erreur bureaux :', err)
     });
 
     this.apiService.getBureauxDisponibles().subscribe({
       next: (data: any[]) => {
         this.bureauxDisponibles.set(data);
-        const initialForms: { [key: number]: { dateDebut: string; dateFin: string } } = {};
-        data.forEach((b: any) => {
-          initialForms[b.id] = { dateDebut: '', dateFin: '' };
-        });
-        this.formReservation.set(initialForms);
       },
       error: (err: any) => console.error('⚠️ Erreur bureaux disponibles :', err)
     });
@@ -349,6 +382,24 @@ export class DashboardComponent implements OnInit {
         this.gererErreurBackend(err);
       }
     });
+  }
+
+  // ---------- CONTACT US / ABOUT ----------
+
+  ouvrirModalContact(): void {
+    this.modalContactOuvert.set(true);
+  }
+
+  fermerModalContact(): void {
+    this.modalContactOuvert.set(false);
+  }
+
+  ouvrirModalAbout(): void {
+    this.modalAboutOuvert.set(true);
+  }
+
+  fermerModalAbout(): void {
+    this.modalAboutOuvert.set(false);
   }
 
   // ---------- TOASTS ----------

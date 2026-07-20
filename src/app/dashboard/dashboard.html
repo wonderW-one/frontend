@@ -94,6 +94,20 @@
             Modifier mon profil
           </button>
 
+          <button type="button" class="btn-contact-us" (click)="ouvrirModalContact()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+            </svg>
+            Contact Us
+          </button>
+
+          <button type="button" class="btn-about-us" (click)="ouvrirModalAbout()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+            </svg>
+            About
+          </button>
+
           <button type="button" class="btn-logout" (click)="onLogout()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #ef4444; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 18px; height: 18px;">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
@@ -201,7 +215,7 @@
                           <label class="input-label">Date de début (réservation uniquement)</label>
                           <input type="date" 
                                  [value]="formReservation()[bureau.id]?.dateDebut || ''"
-                                 [attr.min]="bureau.date_disponibilite_prevue || null"
+                                 [attr.min]="bureau.date_disponibilite_prevue || dateMinReservation"
                                  (input)="updateDate(bureau.id, 'dateDebut', $any($event.target).value)"
                                  class="custom-input">
                         </div>
@@ -210,7 +224,7 @@
                           <label class="input-label">Date de fin</label>
                           <input type="date" 
                                  [value]="formReservation()[bureau.id]?.dateFin || ''"
-                                 [attr.min]="bureau.date_disponibilite_prevue || null"
+                                 [attr.min]="bureau.date_disponibilite_prevue || dateMinReservation"
                                  (input)="updateDate(bureau.id, 'dateFin', $any($event.target).value)"
                                  required 
                                  class="custom-input">
@@ -611,6 +625,102 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL : CONTACT US -->
+  @if (modalContactOuvert()) {
+    <div class="modal-overlay" (click)="fermerModalContact()">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <h3 class="modal-title">Contact Us</h3>
+          <button type="button" class="close-btn" (click)="fermerModalContact()" aria-label="Fermer">&times;</button>
+        </div>
+
+        <div class="modal-body" style="grid-template-columns: 1fr;">
+          <p style="font-size: 0.85rem; color: #5b6675; margin: 0 0 4px;">
+            Pour toute question sur un bureau, une réservation ou un contrat, vous pouvez contacter directement le responsable du bâtiment concerné :
+          </p>
+
+          @if (batimentsContact() && batimentsContact().length > 0) {
+            @for (batiment of batimentsContact(); track batiment.id) {
+              <div class="contact-card">
+                <p class="contact-batiment-nom">{{ batiment.nom || 'Bâtiment' }}</p>
+                @if (batiment.adresse) {
+                  <p class="contact-line">{{ batiment.adresse }}</p>
+                }
+
+                @if (batiment.proprietaire_nom || batiment.proprietaire_prenom) {
+                  <p class="contact-line">
+                    <strong>Responsable :</strong>
+                    {{ batiment.proprietaire_prenom }} {{ batiment.proprietaire_nom }}
+                  </p>
+                }
+
+                @if (batiment.proprietaire_telephone) {
+                  <p class="contact-line">
+                    <strong>Téléphone :</strong>
+                    <a [href]="'tel:' + batiment.proprietaire_telephone">{{ batiment.proprietaire_telephone }}</a>
+                  </p>
+                }
+
+                @if (batiment.proprietaire_email) {
+                  <p class="contact-line">
+                    <strong>E-mail :</strong>
+                    <a [href]="'mailto:' + batiment.proprietaire_email">{{ batiment.proprietaire_email }}</a>
+                  </p>
+                }
+
+                @if (!batiment.proprietaire_telephone && !batiment.proprietaire_email) {
+                  <p class="contact-line" style="color: #94a3b8; font-style: italic;">
+                    Coordonnées du responsable non renseignées.
+                  </p>
+                }
+              </div>
+            }
+          } @else {
+            <div class="empty-state-left">
+              <p>Aucun bâtiment disponible pour le moment.</p>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary-inline" (click)="fermerModalContact()">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL : ABOUT -->
+  @if (modalAboutOuvert()) {
+    <div class="modal-overlay" (click)="fermerModalAbout()">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <h3 class="modal-title">About</h3>
+          <button type="button" class="close-btn" (click)="fermerModalAbout()" aria-label="Fermer">&times;</button>
+        </div>
+
+        <div class="modal-body" style="grid-template-columns: 1fr;">
+          <p class="contact-line">
+            Notre plateforme simplifie la gestion locative des espaces de bureau : recherche et réservation de bureaux disponibles, suivi des contrats de location, déclaration et suivi des paiements, le tout depuis un tableau de bord unique.
+          </p>
+          <p class="contact-line">
+            Que vous soyez à la recherche d'un espace ponctuel via une réservation ou d'une location durable via un contrat cadre, notre équipe et les responsables de chaque bâtiment sont disponibles pour vous accompagner à chaque étape.
+          </p>
+          <p class="contact-line" style="color: #94a3b8; font-size: 0.75rem;">
+            Pour toute demande spécifique concernant un bâtiment, utilisez la section "Contact Us" afin de joindre directement le responsable concerné.
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary-inline" (click)="fermerModalAbout()">
+            Fermer
+          </button>
+        </div>
       </div>
     </div>
   }

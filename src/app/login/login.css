@@ -1,18 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap');
 
-/* --- Variables de Design (identité "gestion de bâtiment") --- */
-:root {
-    --primary-color: #a9762f;       /* Bronze — accent de marque */
-    --primary-hover: #8f6326;
-    --bg-gradient: linear-gradient(135deg, #f7f8fa 0%, #e1e4ea 100%);
-    --text-main: #1b2530;           /* Encre navy */
-    --text-muted: #5b6675;
-    --border-color: #d7dbe2;
-    --error-bg: #faeeec;
-    --error-text: #973030;
-    --font-display: 'Sora', 'Segoe UI', sans-serif;
-    --font-body: 'Inter', 'Segoe UI', sans-serif;
-  }
   
   /* --- Conteneur Principal (Centrage Absolu) --- */
   .login-container {
@@ -24,8 +11,8 @@
     justify-content: center;
     align-items: center;
     padding: 20px;
-    font-family: var(--font-body);
-    background: var(--bg-gradient);
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #f7f8fa 0%, #e1e4ea 100%);
   }
 
   /* --- Carte du Formulaire --- */
@@ -33,7 +20,7 @@
     background: #ffffff;
     padding: 40px;
     border-radius: 12px;
-    border-top: 3px solid var(--primary-color);
+    border-top: 3px solid #a9762f;
     box-shadow: 0 1px 2px rgba(27, 37, 48, 0.04),
                 0 12px 28px -8px rgba(27, 37, 48, 0.12);
     width: 100%;
@@ -46,8 +33,8 @@
   .login-container h2 {
     margin-top: 0;
     margin-bottom: 6px;
-    color: var(--text-main);
-    font-family: var(--font-display);
+    color: #1b2530;
+    font-family: 'Sora', 'Segoe UI', sans-serif;
     font-size: 26px;
     font-weight: 700;
     text-align: center;
@@ -56,7 +43,7 @@
 
   .login-container .login-subtitle {
     text-align: center;
-    color: var(--text-muted);
+    color: #5b6675;
     font-size: 13px;
     margin-bottom: 28px;
   }
@@ -70,7 +57,7 @@
   
   .form-group label {
     margin-bottom: 8px;
-    color: var(--text-main);
+    color: #1b2530;
     font-size: 14px;
     font-weight: 600;
   }
@@ -79,29 +66,29 @@
   .form-control {
     padding: 12px 16px;
     font-size: 15px;
-    font-family: var(--font-body);
-    border: 1px solid var(--border-color);
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    border: 1px solid #d7dbe2;
     border-radius: 8px;
-    color: var(--text-main);
+    color: #1b2530;
     background-color: #f7f8fa;
     outline: none;
     transition: all 0.2s ease-in-out;
   }
 
   .form-control:focus {
-    border-color: var(--primary-color);
+    border-color: #a9762f;
     background-color: #ffffff;
     box-shadow: 0 0 0 4px rgba(169, 118, 47, 0.12);
   }
   
   .form-control::placeholder {
-    color: var(--text-muted);
+    color: #5b6675;
   }
   
   /* --- Alerte Erreur (Angular @if) --- */
   .alert-error {
-    background-color: var(--error-bg);
-    color: var(--error-text);
+    background-color: #faeeec;
+    color: #973030;
     padding: 12px 16px;
     border-radius: 8px;
     font-size: 14px;
@@ -116,11 +103,11 @@
   .btn-login {
     width: 100%;
     padding: 13px;
-    background-color: var(--primary-color);
+    background-color: #a9762f;
     color: #ffffff;
     border: none;
     border-radius: 8px;
-    font-family: var(--font-body);
+    font-family: 'Inter', 'Segoe UI', sans-serif;
     font-size: 14px;
     font-weight: 600;
     letter-spacing: 0.03em;
