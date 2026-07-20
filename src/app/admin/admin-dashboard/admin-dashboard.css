@@ -187,3 +187,89 @@
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+/* ==========================================================================
+   RESPONSIVE — Adaptation mobile / tablette
+   ========================================================================== */
+
+/* Tablette et mobile : la sidebar passe en barre horizontale en haut */
+@media (max-width: 900px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    padding: 16px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .sidebar-brand h3 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .sidebar-menu {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+  .sidebar-menu::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
+  .sidebar-menu button {
+    white-space: nowrap;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .sidebar-footer {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .btn-logout {
+    width: auto;
+    padding: 10px 16px;
+    white-space: nowrap;
+  }
+
+  .admin-main {
+    padding: 20px 16px;
+  }
+}
+
+/* Mobile : formulaires, KPI et tableaux adaptés */
+@media (max-width: 600px) {
+  .admin-main { padding: 16px 12px; }
+  .admin-section h2 { font-size: 20px; }
+
+  .kpi-grid { grid-template-columns: 1fr; gap: 16px; }
+  .kpi-card { padding: 18px; }
+
+  .admin-form { padding: 16px; }
+  .form-row { flex-direction: column; align-items: stretch; }
+  .admin-form input,
+  .form-select,
+  .form-row input {
+    min-width: 0;
+    width: 100%;
+  }
+  .btn-submit-bureau { width: 100%; }
+
+  /* Tableaux : on préfère un défilement horizontal à un écrasement des colonnes */
+  .admin-section { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .admin-table { min-width: 560px; }
+
+  .modal-box { width: 92%; padding: 18px; }
+}
+
+/* Très petits écrans */
+@media (max-width: 380px) {
+  .sidebar-brand h3 { font-size: 16px; }
+  .kpi-value { font-size: 20px; }
+}

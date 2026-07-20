@@ -880,3 +880,12 @@
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+/* ==========================================================================
+   RESPONSIVE — Filet de sécurité pour très petits écrans
+   (le reste du fichier est déjà mobile-first, ceci ne fait qu'affiner)
+   ========================================================================== */
+@media (max-width: 400px) {
+  .dashboard-container { padding: 1rem; gap: 1rem; }
+  .content-section, .profile-card { padding: 1.1rem; }
+  .section-title-lg { font-size: 1rem; }
+}

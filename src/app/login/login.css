@@ -153,3 +153,25 @@
     text-decoration: underline;
     color: #4338ca;
   }
+/* ==========================================================================
+   RESPONSIVE — Petits écrans
+   ========================================================================== */
+@media (max-width: 480px) {
+  .login-container { padding: 12px; }
+  .login-container form {
+    padding: 24px 20px;
+    border-radius: 12px;
+  }
+  .login-container h2 {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+  .form-control {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  .btn-login {
+    padding: 12px;
+    font-size: 15px;
+  }
+}

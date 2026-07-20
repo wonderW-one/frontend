@@ -123,3 +123,22 @@
     background-color: #f9fafb;
     cursor: pointer;
   }
+/* ==========================================================================
+   RESPONSIVE — Petits écrans (en complément du breakpoint 500px existant)
+   ========================================================================== */
+@media (max-width: 480px) {
+  .register-wrapper { padding: 12px; }
+  .register-box {
+    padding: 20px;
+    border-radius: 10px;
+  }
+  .register-header h2 { font-size: 1.4rem; }
+  .custom-input {
+    padding: 9px 12px;
+    font-size: 0.9rem;
+  }
+  .btn-register {
+    padding: 11px;
+    font-size: 0.95rem;
+  }
+}
