@@ -1,12 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --admin-accent: #a9762f;
+  --admin-accent-soft: #f3e8d7;
+  --admin-ink: #1b2530;
+  --admin-ink-hover: #2a3644;
+  --font-display: 'Sora', 'Segoe UI', sans-serif;
+  --font-body: 'Inter', 'Segoe UI', sans-serif;
+}
+
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #f1f5f9;
-  font-family: system-ui, -apple-system, sans-serif;
+  background-color: #f4f5f7;
+  font-family: var(--font-body);
 }
 .sidebar {
   width: 260px;
-  background-color: #1e293b;
+  background-color: var(--admin-ink);
   color: #ffffff;
   padding: 24px;
   display: flex;
@@ -14,63 +25,112 @@
   justify-content: space-between;
 }
 .sidebar-brand h3 {
-  margin: 0 0 32px 0;
-  font-size: 20px;
-  color: #38bdf8;
+  margin: 0 0 4px 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  color: #d3a866;
+  letter-spacing: -0.2px;
 }
 .sidebar-menu {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 .sidebar-menu button {
   background: none;
   border: none;
-  color: #94a3b8;
-  padding: 12px 16px;
+  border-left: 3px solid transparent;
+  color: #8891a0;
+  padding: 12px 14px;
   text-align: left;
-  font-size: 15px;
-  border-radius: 8px;
+  font-size: 14.5px;
+  font-family: var(--font-body);
+  border-radius: 6px;
   cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
 }
-.sidebar-menu button:hover, .sidebar-menu button.active {
-  background-color: #334155;
+.sidebar-menu button:hover {
+  background-color: var(--admin-ink-hover);
   color: #ffffff;
+}
+.sidebar-menu button.active {
+  background-color: var(--admin-ink-hover);
+  border-left-color: var(--admin-accent);
+  color: #ffffff;
+  font-weight: 600;
 }
 .sidebar-footer {
   margin-top: auto;
   padding-top: 20px;
-  border-top: 1px solid #334155;
+  border-top: 1px solid var(--admin-ink-hover);
 }
 .btn-logout {
   width: 100%;
-  background-color: #ef4444;
-  color: white;
-  border: none;
-  padding: 12px;
+  background-color: transparent;
+  color: #e9a5a5;
+  border: 1px solid #4a2f2f;
+  padding: 11px;
   border-radius: 8px;
   font-weight: 600;
+  font-size: 13.5px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
-.btn-logout:hover { 
-  background-color: #dc2626; 
+.btn-logout:hover {
+  background-color: #b23b3b;
+  border-color: #b23b3b;
+  color: #ffffff;
 }
 .admin-main { flex: 1; padding: 40px; overflow-y: auto; }
-.admin-section h2 { color: #0f172a; margin-bottom: 24px; }
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
-.kpi-card { background: #ffffff; padding: 24px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-.kpi-title { color: #64748b; font-size: 14px; }
-.kpi-value { font-size: 24px; font-weight: 700; color: #0f172a; }
-.text-success { color: #16a34a; }
-.admin-table { width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 12px; overflow: hidden; }
-.admin-table th, .admin-table td { padding: 16px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-.admin-table th { background-color: #f8fafc; color: #475569; }
-.status-indicator.paid { color: #16a34a; font-weight: bold; }
-.admin-form { background: #ffffff; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
-.form-row { display: flex; gap: 15px; flex-wrap: wrap; }
-.admin-form input { flex: 1; min-width: 150px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
-.btn-submit-bureau { background-color: #4f46e5; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+.admin-section h2 {
+  color: var(--admin-ink);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  letter-spacing: -0.2px;
+}
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+.kpi-card {
+  background: #ffffff;
+  padding: 22px 24px;
+  border-radius: 10px;
+  border: 1px solid #e1e4ea;
+  border-left: 3px solid var(--admin-accent);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 1px 2px rgba(27, 37, 48, 0.04);
+}
+.kpi-title { color: #5b6675; font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.kpi-value { font-size: 24px; font-weight: 700; color: var(--admin-ink); font-family: var(--font-display); }
+.text-success { color: #2f7d4f; }
+.admin-table { width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 10px; overflow: hidden; border: 1px solid #e1e4ea; }
+.admin-table th, .admin-table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #e1e4ea; font-size: 14px; }
+.admin-table th { background-color: #f7f8fa; color: #4c5768; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+.admin-table tbody tr:hover { background-color: #fbf8f3; }
+.admin-table tbody tr:last-child td { border-bottom: none; }
+.status-indicator.paid { color: #2f7d4f; font-weight: bold; }
+.admin-form { background: #ffffff; padding: 20px; border-radius: 10px; border: 1px solid #e1e4ea; margin-bottom: 28px; }
+.admin-form input { flex: 1; min-width: 150px; padding: 9px 12px; border: 1px solid #d7dbe2; border-radius: 6px; font-size: 14px; }
+.admin-form input:focus, .form-select:focus, .form-row input:focus {
+  outline: none;
+  border-color: #a9762f;
+  box-shadow: 0 0 0 3px rgba(169, 118, 47, 0.12);
+}
+.btn-submit-bureau {
+  background-color: #a9762f;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.btn-submit-bureau:hover { background-color: #8f6326; }
 .form-row {
   display: flex;
   gap: 10px;
@@ -80,34 +140,36 @@
 
 .form-select, .form-row input {
   padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #d7dbe2;
+  border-radius: 6px;
+  font-size: 14px;
   min-width: 150px;
 }
 /* bouton validation */
 .btn-validate {
-  background-color: #28a745;
+  background-color: #2f7d4f;
   color: white;
   border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   transition: background 0.2s;
 }
 
 .btn-validate:hover {
-  background-color: #218838;
+  background-color: #256840;
 }
 
 .text-muted {
-  color: #6c757d;
+  color: #5b6675;
   font-style: italic;
   font-size: 0.85rem;
 }
 
 .text-indigo {
-  color: #4f46e5;
+  color: #a9762f;
 }
 
 /* ---------- Badges de statut temporel (réservations / contrats) ---------- */
@@ -118,16 +180,16 @@
   font-size: 0.78rem;
   font-weight: 600;
 }
-.badge-avenir { background-color: #dbeafe; color: #1d4ed8; }
-.badge-encours { background-color: #dcfce7; color: #15803d; }
-.badge-expire { background-color: #fee2e2; color: #b91c1c; }
+.badge-avenir { background-color: #dfeceb; color: #2c5457; }
+.badge-encours { background-color: #dcefe1; color: #256840; }
+.badge-expire { background-color: #f8e4e2; color: #7d2828; }
 
 .badge-type-sm {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 6px;
-  background-color: #eef2ff;
-  color: #4f46e5;
+  background-color: #f3e8d7;
+  color: #a9762f;
   font-size: 0.78rem;
   font-weight: 500;
 }
@@ -154,10 +216,10 @@
 }
 .modal-box h3 {
   margin-top: 0;
-  color: #0f172a;
+  color: #1b2530;
 }
 .modal-box p {
-  color: #334155;
+  color: #2a3644;
   margin: 8px 0;
 }
 
@@ -179,9 +241,9 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   animation: toast-in 0.2s ease-out;
 }
-.toast-success { background-color: #10b981; }
-.toast-error { background-color: #ef4444; }
-.toast-info { background-color: #3b82f6; }
+.toast-success { background-color: #2f7d4f; }
+.toast-error { background-color: #b23b3b; }
+.toast-info { background-color: #3c6e71; }
 
 @keyframes toast-in {
   from { opacity: 0; transform: translateY(8px); }

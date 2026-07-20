@@ -1,13 +1,17 @@
-/* --- Variables de Design --- */
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* --- Variables de Design (identité "gestion de bâtiment") --- */
 :root {
-    --primary-color: #4f46e5;       /* Indigo */
-    --primary-hover: #4338ca;
-    --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    --text-main: #1e293b;           /* Slate 800 */
-    --text-muted: #64748b;          /* Slate 500 */
-    --border-color: #cbd5e1;        /* Slate 300 */
-    --error-bg: #fef2f2;            /* Rouge léger */
-    --error-text: #dc2626;          /* Rouge vif */
+    --primary-color: #a9762f;       /* Bronze — accent de marque */
+    --primary-hover: #8f6326;
+    --bg-gradient: linear-gradient(135deg, #f7f8fa 0%, #e1e4ea 100%);
+    --text-main: #1b2530;           /* Encre navy */
+    --text-muted: #5b6675;
+    --border-color: #d7dbe2;
+    --error-bg: #faeeec;
+    --error-text: #973030;
+    --font-display: 'Sora', 'Segoe UI', sans-serif;
+    --font-body: 'Inter', 'Segoe UI', sans-serif;
   }
   
   /* --- Conteneur Principal (Centrage Absolu) --- */
@@ -20,31 +24,41 @@
     justify-content: center;
     align-items: center;
     padding: 20px;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: var(--font-body);
+    background: var(--bg-gradient);
   }
-  
+
   /* --- Carte du Formulaire --- */
   .login-container form {
-    background: beige;
+    background: #ffffff;
     padding: 40px;
-    border-radius: 16px;
-    box-shadow: 0 5px 5px 5px rgba(0, 0, 0, 0.05), 
-                0 8px 10px 6px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    border-top: 3px solid var(--primary-color);
+    box-shadow: 0 1px 2px rgba(27, 37, 48, 0.04),
+                0 12px 28px -8px rgba(27, 37, 48, 0.12);
     width: 100%;
     max-width: 420px;
     box-sizing: border-box;
     transition: transform 0.2s ease;
   }
-  
+
   /* --- Titre --- */
   .login-container h2 {
     margin-top: 0;
-    margin-bottom: 32px;
+    margin-bottom: 6px;
     color: var(--text-main);
-    font-size: 28px;
+    font-family: var(--font-display);
+    font-size: 26px;
     font-weight: 700;
     text-align: center;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.3px;
+  }
+
+  .login-container .login-subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 28px;
   }
   
   /* --- Groupes de Champs --- */
@@ -65,19 +79,19 @@
   .form-control {
     padding: 12px 16px;
     font-size: 15px;
-    border: 1px solid var(--primary-color);
+    font-family: var(--font-body);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     color: var(--text-main);
-    background-color: #f8fafc;
+    background-color: #f7f8fa;
     outline: none;
     transition: all 0.2s ease-in-out;
-    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
   }
-  
+
   .form-control:focus {
     border-color: var(--primary-color);
     background-color: #ffffff;
-    box-shadow: 0 0 0 6px rgba(79, 70, 229, 0.1);
+    box-shadow: 0 0 0 4px rgba(169, 118, 47, 0.12);
   }
   
   .form-control::placeholder {
@@ -101,20 +115,23 @@
   /* --- Bouton Soumettre --- */
   .btn-login {
     width: 100%;
-    padding: 14px;
-    background-color: rgb(70, 126, 247);
-    color: black;
+    padding: 13px;
+    background-color: var(--primary-color);
+    color: #ffffff;
     border: none;
     border-radius: 8px;
-    font-size: 16px;
+    font-family: var(--font-body);
+    font-size: 14px;
     font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.1s ease;
-    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+    box-shadow: 0 4px 10px -2px rgba(169, 118, 47, 0.35);
   }
   
   .btn-login:hover {
-    background-color: rgb(5, 26, 83);
+    background-color: #8f6326;
     color: white;
   }
   
@@ -139,11 +156,11 @@
     text-align: center;
     margin-top: 20px;
     font-size: 0.9rem;
-    color: #4b5563;
+    color: #4c5768;
   }
   
   .login-footer a {
-    color: #4f46e5;
+    color: #a9762f;
     text-decoration: none;
     font-weight: 600;
     transition: color 0.2s;
@@ -151,7 +168,7 @@
   
   .login-footer a:hover {
     text-decoration: underline;
-    color: #4338ca;
+    color: #8f6326;
   }
 /* ==========================================================================
    RESPONSIVE — Petits écrans
