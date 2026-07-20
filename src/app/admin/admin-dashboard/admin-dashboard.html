@@ -14,6 +14,23 @@
       <button [class.active]="ongletActif() === 'paiements'" (click)="changerOnglet('paiements')">Flux des Paiements</button>
       <button [class.active]="ongletActif() === 'fiche-clients'" (click)="changerOnglet('fiche-clients')">📇 Fiches Clients</button>
     </nav>
+
+    <!-- 🟢 AJOUT : menu déroulant mobile, identique au pattern de staff-dashboard.html.
+         Le CSS (.sidebar-select-mobile) existait déjà dans admin-dashboard.css mais
+         l'élément HTML correspondant manquait : sur petit écran, .sidebar-menu est
+         masqué (voir @media max-width:900px) sans aucun remplaçant. -->
+    <select class="sidebar-select-mobile" [value]="ongletActif()" (change)="changerOnglet($any($event.target).value)">
+      <option value="vue-ensemble">Vue d'ensemble</option>
+      <option value="bureaux">Gestion des Bureaux</option>
+      <option value="batiments-niveaux">🏢 Bâtiments & Niveaux</option>
+      <option value="reservations">Réservations globales</option>
+      <option value="contrats">Registre des Contrats</option>
+      <option value="suivi-clients">👥 Clients & Bureaux</option>
+      <option value="suivi-workers">🛠️ Encaisses validées</option>
+      <option value="paiements">Flux des Paiements</option>
+      <option value="fiche-clients">📇 Fiches Clients</option>
+    </select>
+
     <div class="sidebar-footer">
       <button (click)="deconnexion()" class="btn-logout">🚪 Déconnexion</button>
     </div>
